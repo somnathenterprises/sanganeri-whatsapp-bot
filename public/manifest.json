@@ -1,0 +1,15 @@
+{
+  "name": "Sanganeri Moda - WhatsApp Desk",
+  "short_name": "WA Desk",
+  "description": "Send WhatsApp templates and manage AI auto-replies for Sanganeri Moda",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1e2a4a",
+  "theme_color": "#1e2a4a",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
