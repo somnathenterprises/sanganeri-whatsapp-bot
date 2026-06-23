@@ -49,7 +49,6 @@ router.post('/send-text', async (req, res) => {
 });
 
 // Send a pre-approved WhatsApp template to one or more recipients
-// body: { recipients: ["91XXXXXXXXXX", ...], templateName, languageCode, components }
 router.post('/send-template', async (req, res) => {
   try {
     const { recipients, templateName, languageCode, components } = req.body;
@@ -88,6 +87,38 @@ router.post('/settings', (req, res) => {
   const updated = { ...current, ...req.body };
   store.saveSettings(updated);
   res.json(updated);
+});
+
+// ─── COD Verifications API ────────────────────────────────────────────────────
+
+// Get all verifications (optionally filter by status)
+router.get('/verifications', (req, res) => {
+  const all = store.getPendingVerifications();
+  const { status } = req.query;
+  let list = Object.values(all).sort((a, b) => b.createdAt - a.createdAt);
+  if (status) {
+    list = list.filter((v) => v.status === status);
+  }
+  res.json(list);
+});
+
+// Manually mark a verification as confirmed or cancelled (admin override)
+router.post('/verifications/:orderNumber/status', (req, res) => {
+  const verifications = store.getPendingVerifications();
+  const { orderNumber } = req.params;
+  const { status } = req.body;
+
+  if (!verifications[orderNumber]) {
+    return res.status(404).json({ error: 'Verification not found' });
+  }
+  if (!['confirmed', 'cancelled', 'pending'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status. Use: confirmed, cancelled, pending' });
+  }
+
+  verifications[orderNumber].status = status;
+  verifications[orderNumber].updatedAt = Date.now();
+  store.savePendingVerifications(verifications);
+  res.json({ success: true, verification: verifications[orderNumber] });
 });
 
 module.exports = router;
