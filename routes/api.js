@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const whatsapp = require('../services/whatsapp');
 const store = require('../services/store');
+const shopify = require('../services/shopify');
 
 // Simple password check for all dashboard API calls
 function checkAuth(req, res, next) {
@@ -39,7 +40,6 @@ router.post('/send-text', async (req, res) => {
   try {
     const { to, message } = req.body;
     if (!to || !message) return res.status(400).json({ error: 'to and message are required' });
-
     await whatsapp.sendTextMessage(to, message);
     store.addMessage(to, { role: 'assistant', content: message, timestamp: Date.now(), manual: true });
     res.json({ success: true });
@@ -55,7 +55,6 @@ router.post('/send-template', async (req, res) => {
     if (!Array.isArray(recipients) || !templateName) {
       return res.status(400).json({ error: 'recipients (array) and templateName are required' });
     }
-
     const results = [];
     for (const to of recipients) {
       try {
@@ -77,7 +76,7 @@ router.post('/send-template', async (req, res) => {
   }
 });
 
-// Get / update settings (e.g. AI auto-reply toggle)
+// Get / update settings
 router.get('/settings', (req, res) => {
   res.json(store.getSettings());
 });
@@ -90,35 +89,59 @@ router.post('/settings', (req, res) => {
 });
 
 // ─── COD Verifications API ────────────────────────────────────────────────────
-
-// Get all verifications (optionally filter by status)
 router.get('/verifications', (req, res) => {
   const all = store.getPendingVerifications();
   const { status } = req.query;
   let list = Object.values(all).sort((a, b) => b.createdAt - a.createdAt);
-  if (status) {
-    list = list.filter((v) => v.status === status);
-  }
+  if (status) list = list.filter((v) => v.status === status);
   res.json(list);
 });
 
-// Manually mark a verification as confirmed or cancelled (admin override)
 router.post('/verifications/:orderNumber/status', (req, res) => {
   const verifications = store.getPendingVerifications();
   const { orderNumber } = req.params;
   const { status } = req.body;
-
-  if (!verifications[orderNumber]) {
-    return res.status(404).json({ error: 'Verification not found' });
-  }
+  if (!verifications[orderNumber]) return res.status(404).json({ error: 'Verification not found' });
   if (!['confirmed', 'cancelled', 'pending'].includes(status)) {
-    return res.status(400).json({ error: 'Invalid status. Use: confirmed, cancelled, pending' });
+    return res.status(400).json({ error: 'Invalid status' });
   }
-
   verifications[orderNumber].status = status;
   verifications[orderNumber].updatedAt = Date.now();
   store.savePendingVerifications(verifications);
   res.json({ success: true, verification: verifications[orderNumber] });
+});
+
+// ─── LIVE SHOPIFY ORDERS API ──────────────────────────────────────────────────
+
+// GET /api/orders - fetch live orders from Shopify
+// Query params: limit (default 50), status (default 'any'), fulfillment_status, financial_status
+router.get('/orders', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 250);
+    const status = req.query.status || 'any';
+    const fulfillment_status = req.query.fulfillment_status || null;
+    const financial_status = req.query.financial_status || null;
+
+    const params = { status, limit, order: 'created_at DESC' };
+    if (fulfillment_status) params.fulfillment_status = fulfillment_status;
+    if (financial_status) params.financial_status = financial_status;
+
+    const orders = await shopify.getOrders(params);
+    res.json(orders);
+  } catch (e) {
+    res.status(500).json({ error: e.response?.data?.errors || e.message });
+  }
+});
+
+// GET /api/orders/:id - fetch single order detail
+router.get('/orders/:id', async (req, res) => {
+  try {
+    const order = await shopify.getOrderById(req.params.id);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    res.json(order);
+  } catch (e) {
+    res.status(500).json({ error: e.response?.data?.errors || e.message });
+  }
 });
 
 module.exports = router;
