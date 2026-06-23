@@ -28,7 +28,6 @@ async function getOrdersByPhone(phone) {
   });
   const orders = res.data.orders || [];
   const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
-
   return orders.filter((o) => {
     const candidates = [o.phone, o.customer?.phone, o.shipping_address?.phone, o.billing_address?.phone];
     return candidates.some((p) => (p || '').replace(/\D/g, '').slice(-10) === cleanPhone);
@@ -53,4 +52,16 @@ async function checkStock(productTitle) {
   }));
 }
 
-module.exports = { getOrderByName, getOrdersByPhone, checkStock };
+// Fetch orders with flexible params for live orders dashboard
+async function getOrders(params = {}) {
+  const res = await client().get('/orders.json', { params });
+  return res.data.orders || [];
+}
+
+// Fetch a single order by Shopify order ID
+async function getOrderById(orderId) {
+  const res = await client().get(`/orders/${orderId}.json`);
+  return res.data.order || null;
+}
+
+module.exports = { getOrderByName, getOrdersByPhone, checkStock, getOrders, getOrderById };
