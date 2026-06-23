@@ -75,9 +75,10 @@ $$('.tab-btn').forEach((btn) => {
 function switchTab(tab) {
   $$('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
   $$('.view').forEach((v) => v.classList.remove('active'));
-  $(`#view-${tab}`).classList.add('active');
+  `#view-${tab}` && $(`#view-${tab}`) && $(`#view-${tab}`).classList.add('active');
   if (tab === 'conversations') loadConversations();
   if (tab === 'settings') loadSettings();
+  if (tab === 'verifications') loadVerifications();
 }
 
 // ---------- Conversations ----------
@@ -119,122 +120,164 @@ async function openChat(phone) {
 
 async function refreshChat() {
   if (!activeChat) return;
-  const conv = await api(`/conversations/${activeChat}`);
+  const data = await api(`/conversations/${activeChat}`);
   const container = $('#chat-messages');
-  container.innerHTML = conv.messages
+  container.innerHTML = (data.messages || [])
     .map((m) => {
-      const cls = m.role === 'user' ? 'user' : 'assistant';
-      const tag = m.ai ? '<span class="tag">AI auto-reply</span>' : m.manual ? '<span class="tag">Sent by you</span>' : '';
-      return `<div class="bubble ${cls}">${escapeHtml(m.content)}${tag}</div>`;
+      const isUser = m.role === 'user';
+      const time = new Date(m.timestamp).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+      const typeLabel = m.type ? ` <span class="msg-type">${m.type.replace(/_/g,' ')}</span>` : '';
+      return `<div class="msg ${isUser ? 'user' : 'assistant'}">
+        <div class="bubble">${escapeHtml(m.content || '')}</div>
+        <div class="meta">${time}${typeLabel}${m.ai ? ' · AI' : ''}${m.manual ? ' · Manual' : ''}</div>
+      </div>`;
     })
     .join('');
+  container.scrollTop = container.scrollHeight;
 }
 
 $('#btn-back-chat').addEventListener('click', () => {
   activeChat = null;
-  $('#view-chat').classList.remove('active');
-  $('#view-conversations').classList.add('active');
-  $$('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === 'conversations'));
-  loadConversations();
+  switchTab('conversations');
 });
 
 $('#btn-send-reply').addEventListener('click', async () => {
-  const message = $('#chat-reply').value.trim();
-  if (!message || !activeChat) return;
-  const status = $('#reply-status');
-  status.style.display = 'none';
+  const msg = $('#chat-reply').value.trim();
+  if (!msg || !activeChat) return;
+  $('#btn-send-reply').disabled = true;
   try {
-    await api('/send-text', { method: 'POST', body: JSON.stringify({ to: activeChat, message }) });
+    await api('/send-text', {
+      method: 'POST',
+      body: JSON.stringify({ to: activeChat, message: msg }),
+    });
     $('#chat-reply').value = '';
+    const status = $('#reply-status');
     status.textContent = 'Sent!';
     status.style.display = 'block';
+    setTimeout(() => (status.style.display = 'none'), 3000);
     await refreshChat();
   } catch (e) {
-    status.textContent = 'Failed to send. Check WhatsApp API credentials.';
-    status.className = 'error';
-    status.style.display = 'block';
+    alert('Failed to send: ' + e.message);
   }
+  $('#btn-send-reply').disabled = false;
 });
 
-// ---------- Send template ----------
+// ---------- COD Verifications ----------
+window.loadVerifications = async function(statusFilter) {
+  const container = $('#verif-list');
+  container.innerHTML = '<div class="hint">Loading...</div>';
+  try {
+    const path = statusFilter ? `/verifications?status=${statusFilter}` : '/verifications';
+    const list = await api(path);
+    if (!list.length) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">&#128276;</div>No verifications found.</div>';
+      return;
+    }
+    container.innerHTML = list.map((v) => {
+      const statusEmoji = v.status === 'confirmed' ? '✅' : v.status === 'cancelled' ? '❌' : '⏳';
+      const statusColor = v.status === 'confirmed' ? '#2e7d32' : v.status === 'cancelled' ? '#c62828' : '#e65100';
+      const time = new Date(v.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+      return `<div class="conv-item" style="flex-direction:column;align-items:flex-start;gap:6px;">
+        <div style="display:flex;justify-content:space-between;width:100%;">
+          <strong>${v.orderNumber}</strong>
+          <span style="color:${statusColor};font-weight:600;">${statusEmoji} ${v.status.toUpperCase()}</span>
+        </div>
+        <div class="hint">Customer: ${escapeHtml(v.customerName)} · +${v.phone}</div>
+        <div class="hint">Items: ${escapeHtml(v.items || '')}</div>
+        <div class="hint">Amount: ${v.total} · ${time}</div>
+        ${v.status === 'pending' ? `<div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn small" onclick="adminVerify('${v.orderNumber}','confirmed')">✅ Confirm</button>
+          <button class="btn ghost small" onclick="adminVerify('${v.orderNumber}','cancelled')">❌ Cancel</button>
+        </div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    container.innerHTML = '<div class="error">Failed to load verifications.</div>';
+  }
+};
+
+window.adminVerify = async function(orderNumber, status) {
+  try {
+    await api(`/verifications/${encodeURIComponent(orderNumber)}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    });
+    loadVerifications();
+  } catch(e) {
+    alert('Failed to update: ' + e.message);
+  }
+};
+
+// ---------- Templates ----------
 $('#btn-send-template').addEventListener('click', async () => {
-  const recipients = $('#tpl-recipients').value
-    .split('\n')
-    .map((s) => s.trim().replace(/\D/g, ''))
-    .filter(Boolean);
+  const recipientsRaw = $('#tpl-recipients').value.trim();
   const templateName = $('#tpl-name').value.trim();
   const languageCode = $('#tpl-lang').value.trim() || 'en_US';
   const varsRaw = $('#tpl-vars').value.trim();
 
-  const resultBox = $('#template-result');
-  resultBox.innerHTML = '';
-
-  if (!recipients.length || !templateName) {
-    resultBox.innerHTML = `<p class="error">Add at least one recipient and a template name.</p>`;
+  if (!recipientsRaw || !templateName) {
+    alert('Please enter recipients and template name.');
     return;
   }
 
-  let components = [];
-  if (varsRaw) {
-    const params = varsRaw.split(',').map((v) => ({ type: 'text', text: v.trim() }));
-    components = [{ type: 'body', parameters: params }];
-  }
+  const recipients = recipientsRaw.split('\n').map((r) => r.trim()).filter(Boolean);
+  const vars = varsRaw ? varsRaw.split(',').map((v) => v.trim()) : [];
+  const components = vars.length
+    ? [{ type: 'body', parameters: vars.map((v) => ({ type: 'text', text: v })) }]
+    : [];
 
-  resultBox.innerHTML = `<p class="hint">Sending to ${recipients.length} recipient(s)...</p>`;
-
+  $('#btn-send-template').disabled = true;
   try {
-    const data = await api('/send-template', {
+    const result = await api('/send-template', {
       method: 'POST',
       body: JSON.stringify({ recipients, templateName, languageCode, components }),
     });
-    const ok = data.results.filter((r) => r.success).length;
-    const fail = data.results.filter((r) => !r.success);
-    let html = `<p class="success">Sent to ${ok}/${data.results.length}.</p>`;
-    if (fail.length) {
-      html += fail.map((f) => `<p class="error">+${f.to}: ${escapeHtml(f.error)}</p>`).join('');
-    }
-    resultBox.innerHTML = html;
-  } catch (e) {
-    resultBox.innerHTML = `<p class="error">Failed to send templates.</p>`;
+    const div = $('#template-result');
+    div.innerHTML = (result.results || [])
+      .map((r) => `<div class="${r.success ? 'success' : 'error'}">${r.to}: ${r.success ? 'Sent ✓' : r.error}</div>`)
+      .join('');
+  } catch(e) {
+    alert('Error: ' + e.message);
   }
+  $('#btn-send-template').disabled = false;
 });
 
 // ---------- Settings ----------
 async function loadSettings() {
-  const settings = await api('/settings');
-  $('#toggle-ai').checked = !!settings.aiAutoReplyEnabled;
+  const s = await api('/settings');
+  $('#toggle-ai').checked = !!s.aiAutoReplyEnabled;
+
+  // Show Shopify webhook URLs
+  const base = window.location.origin;
+  const urlCreated = $('#url-order-created');
+  const urlFulfilled = $('#url-order-fulfilled');
+  if (urlCreated) urlCreated.textContent = base + '/shopify/order-created';
+  if (urlFulfilled) urlFulfilled.textContent = base + '/shopify/order-fulfilled';
 }
 
-$('#toggle-ai').addEventListener('change', async (e) => {
-  await api('/settings', { method: 'POST', body: JSON.stringify({ aiAutoReplyEnabled: e.target.checked }) });
+$('#toggle-ai').addEventListener('change', async () => {
+  await api('/settings', {
+    method: 'POST',
+    body: JSON.stringify({ aiAutoReplyEnabled: $('#toggle-ai').checked }),
+  });
 });
 
-// ---------- Utilities ----------
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str || '';
-  return div.innerHTML;
-}
-
+// ---------- Init ----------
 function init() {
   loadConversations();
+  // Poll conversations every 15s
   if (pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(() => {
-    if ($('#view-conversations').classList.contains('active')) loadConversations();
-    if ($('#view-chat').classList.contains('active')) refreshChat();
-  }, 8000);
+    const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+    if (activeTab === 'conversations') loadConversations();
+    if (activeTab === 'verifications') loadVerifications();
+  }, 15000);
 }
 
-// ---------- Boot ----------
-(async function boot() {
-  const pw = getPassword();
-  if (!pw) return showLogin();
-  try {
-    await api('/settings');
-    $('#view-login').style.display = 'none';
-    $('#view-app').style.display = 'block';
-    init();
-  } catch (e) {
-    showLogin();
-  }
-})();
+// Auto-login if password already stored
+if (getPassword()) tryLogin(getPassword());
+
+// ---------- Helpers ----------
+function escapeHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
