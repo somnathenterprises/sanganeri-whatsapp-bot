@@ -6,6 +6,7 @@ if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const CONV_FILE = path.join(DATA_DIR, 'conversations.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const VERIFICATIONS_FILE = path.join(DATA_DIR, 'verifications.json');
 
 function readJSON(file, fallback) {
   try {
@@ -48,10 +49,21 @@ function saveSettings(settings) {
   writeJSON(SETTINGS_FILE, settings);
 }
 
+// Pending COD Verifications
+function getPendingVerifications() {
+  return readJSON(VERIFICATIONS_FILE, {});
+}
+
+function savePendingVerifications(data) {
+  writeJSON(VERIFICATIONS_FILE, data);
+}
+
 module.exports = {
   getConversations,
   saveConversations,
   addMessage,
   getSettings,
   saveSettings,
+  getPendingVerifications,
+  savePendingVerifications,
 };
