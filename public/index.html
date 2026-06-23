@@ -11,115 +11,148 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div id="app">
+<div id="app">
 
-    <!-- LOGIN -->
-    <div id="view-login" class="login-wrap">
-      <h1>Sanganeri Moda</h1>
-      <p>WhatsApp Desk - templates, chats &amp; AI auto-reply</p>
-      <div class="block-border" style="border-radius:6px;"></div>
-      <div class="card" style="width:100%; max-width:320px;">
-        <label for="password">Dashboard password</label>
-        <input type="password" id="password" placeholder="Enter your admin password" />
-        <button class="btn" id="btn-login">Unlock</button>
-        <p class="error" id="login-error" style="display:none;"></p>
-      </div>
-    </div>
-
-    <!-- MAIN APP -->
-    <div id="view-app" style="display:none;">
-      <header class="topbar">
-        <h1>Sanganeri Moda</h1>
-        <p>WhatsApp Desk</p>
-      </header>
-      <div class="block-border"></div>
-
-      <main>
-        <!-- CONVERSATIONS LIST -->
-        <section id="view-conversations" class="view active">
-          <div class="card">
-            <h2>Conversations</h2>
-            <div id="conv-list"></div>
-          </div>
-        </section>
-
-        <!-- CHAT DETAIL -->
-        <section id="view-chat" class="view">
-          <div class="chat-header">
-            <button class="back" id="btn-back-chat">&#8592;</button>
-            <span class="title" id="chat-title"></span>
-          </div>
-          <div id="chat-messages"></div>
-          <div class="card">
-            <label for="chat-reply">Send a manual reply</label>
-            <textarea id="chat-reply" placeholder="Type a message..."></textarea>
-            <button class="btn" id="btn-send-reply">Send</button>
-            <p class="success" id="reply-status" style="display:none;"></p>
-          </div>
-        </section>
-
-        <!-- SEND TEMPLATE -->
-        <section id="view-template" class="view">
-          <div class="card">
-            <h2>Send a template</h2>
-            <label for="tpl-recipients">Recipients (phone numbers, one per line)</label>
-            <textarea id="tpl-recipients" placeholder="919812345678&#10;919898765432"></textarea>
-            <p class="recipients-help">Use full numbers with country code, no + or spaces.</p>
-
-            <label for="tpl-name">Template name</label>
-            <input type="text" id="tpl-name" placeholder="e.g. order_shipped" />
-
-            <label for="tpl-lang">Language code</label>
-            <input type="text" id="tpl-lang" value="en_US" placeholder="en_US" />
-
-            <label for="tpl-vars">Body variables (comma separated, optional)</label>
-            <input type="text" id="tpl-vars" placeholder="Madhav, #1234" />
-            <p class="recipients-help">Fill these in the same order as {{1}}, {{2}}... in your approved template.</p>
-
-            <button class="btn" id="btn-send-template">Send template</button>
-            <div id="template-result"></div>
-          </div>
-        </section>
-
-        <!-- SETTINGS -->
-        <section id="view-settings" class="view">
-          <div class="card">
-            <h2>AI auto-reply</h2>
-            <div class="toggle-row">
-              <div>
-                <strong>Auto-reply with AI</strong>
-                <p class="hint">When on, Claude answers customer questions using your live Shopify data (order status, stock).</p>
-              </div>
-              <label class="switch">
-                <input type="checkbox" id="toggle-ai" />
-                <span class="slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="card">
-            <h2>About this app</h2>
-            <p class="hint">Sanganeri Moda WhatsApp Desk - send approved templates, view live conversations, and let AI handle routine order/stock questions automatically. Built for Somnath Enterprises.</p>
-          </div>
-
-          <button class="btn ghost" id="btn-logout">Log out</button>
-        </section>
-      </main>
-
-      <nav class="tabbar">
-        <button class="tab-btn active" data-tab="conversations">
-          <span class="ic">&#128172;</span> Chats
-        </button>
-        <button class="tab-btn" data-tab="template">
-          <span class="ic">&#128226;</span> Templates
-        </button>
-        <button class="tab-btn" data-tab="settings">
-          <span class="ic">&#9881;</span> Settings
-        </button>
-      </nav>
+  <!-- LOGIN -->
+  <div id="view-login" class="login-wrap">
+    <h1>Sanganeri Moda</h1>
+    <p>WhatsApp Desk - templates, chats &amp; AI auto-reply</p>
+    <div class="block-border" style="border-radius:6px;"></div>
+    <div class="card" style="width:100%; max-width:320px;">
+      <label for="password">Dashboard password</label>
+      <input type="password" id="password" placeholder="Enter your admin password" />
+      <button class="btn" id="btn-login">Unlock</button>
+      <p class="error" id="login-error" style="display:none;"></p>
     </div>
   </div>
 
-  <script src="/app.js"></script>
+  <!-- MAIN APP -->
+  <div id="view-app" style="display:none;">
+    <header class="topbar">
+      <h1>Sanganeri Moda</h1>
+      <p>WhatsApp Desk</p>
+    </header>
+    <div class="block-border"></div>
+
+    <main>
+      <!-- CONVERSATIONS LIST -->
+      <section id="view-conversations" class="view active">
+        <div class="card">
+          <h2>Conversations</h2>
+          <div id="conv-list"></div>
+        </div>
+      </section>
+
+      <!-- CHAT DETAIL -->
+      <section id="view-chat" class="view">
+        <div class="chat-header">
+          <button class="back" id="btn-back-chat">&#8592;</button>
+          <span class="title" id="chat-title"></span>
+        </div>
+        <div id="chat-messages"></div>
+        <div class="card">
+          <label for="chat-reply">Send a manual reply</label>
+          <textarea id="chat-reply" placeholder="Type a message..."></textarea>
+          <button class="btn" id="btn-send-reply">Send</button>
+          <p class="success" id="reply-status" style="display:none;"></p>
+        </div>
+      </section>
+
+      <!-- COD VERIFICATIONS -->
+      <section id="view-verifications" class="view">
+        <div class="card">
+          <h2>&#128276; COD Verifications</h2>
+          <p class="hint">Orders waiting for customer confirmation via WhatsApp.</p>
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <button class="btn ghost small" onclick="loadVerifications('pending')">&#128336; Pending</button>
+            <button class="btn ghost small" onclick="loadVerifications('confirmed')">&#10003; Confirmed</button>
+            <button class="btn ghost small" onclick="loadVerifications('cancelled')">&#10007; Cancelled</button>
+            <button class="btn ghost small" onclick="loadVerifications()">All</button>
+          </div>
+          <div id="verif-list"></div>
+        </div>
+      </section>
+
+      <!-- SEND TEMPLATE -->
+      <section id="view-template" class="view">
+        <div class="card">
+          <h2>Send a template</h2>
+          <label for="tpl-recipients">Recipients (phone numbers, one per line)</label>
+          <textarea id="tpl-recipients" placeholder="919812345678&#10;919898765432"></textarea>
+          <p class="recipients-help">Use full numbers with country code, no + or spaces.</p>
+
+          <label for="tpl-name">Template name</label>
+          <input type="text" id="tpl-name" placeholder="e.g. order_shipped" />
+
+          <label for="tpl-lang">Language code</label>
+          <input type="text" id="tpl-lang" value="en_US" placeholder="en_US" />
+
+          <label for="tpl-vars">Body variables (comma separated, optional)</label>
+          <input type="text" id="tpl-vars" placeholder="Madhav, #1234" />
+          <p class="recipients-help">Fill these in the same order as {{1}}, {{2}}... in your approved template.</p>
+
+          <button class="btn" id="btn-send-template">Send template</button>
+          <div id="template-result"></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="view-settings" class="view">
+        <div class="card">
+          <h2>AI auto-reply</h2>
+          <div class="toggle-row">
+            <div>
+              <strong>Auto-reply with AI</strong>
+              <p class="hint">When on, Claude answers customer questions using your live Shopify data (order status, stock).</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggle-ai" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>&#128722; Shopify Webhook URLs</h2>
+          <p class="hint">Register these in your Shopify Admin &rarr; Settings &rarr; Notifications &rarr; Webhooks:</p>
+          <div id="webhook-urls">
+            <div style="margin-bottom:8px;">
+              <strong>Order Created (Confirmation + COD Verification):</strong><br/>
+              <code id="url-order-created" style="font-size:12px;word-break:break-all;background:#f0f0f0;padding:4px;border-radius:4px;display:block;margin-top:4px;"></code>
+            </div>
+            <div>
+              <strong>Order Fulfilled (Tracking Message):</strong><br/>
+              <code id="url-order-fulfilled" style="font-size:12px;word-break:break-all;background:#f0f0f0;padding:4px;border-radius:4px;display:block;margin-top:4px;"></code>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>About this app</h2>
+          <p class="hint">Sanganeri Moda WhatsApp Desk - send approved templates, view live conversations, manage COD verifications, and let AI handle routine order/stock questions automatically. Built for Somnath Enterprises.</p>
+        </div>
+
+        <button class="btn ghost" id="btn-logout">Log out</button>
+      </section>
+    </main>
+
+    <nav class="tabbar">
+      <button class="tab-btn active" data-tab="conversations">
+        <span class="ic">&#128172;</span> Chats
+      </button>
+      <button class="tab-btn" data-tab="verifications">
+        <span class="ic">&#128276;</span> COD
+      </button>
+      <button class="tab-btn" data-tab="template">
+        <span class="ic">&#128226;</span> Templates
+      </button>
+      <button class="tab-btn" data-tab="settings">
+        <span class="ic">&#9881;</span> Settings
+      </button>
+    </nav>
+  </div>
+
+</div>
+<script src="/app.js"></script>
 </body>
 </html>
