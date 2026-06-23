@@ -3,6 +3,7 @@ const router = express.Router();
 const whatsapp = require('../services/whatsapp');
 const store = require('../services/store');
 const ai = require('../services/ai');
+const { handleVerificationReply } = require('./shopify-webhook');
 
 // Meta calls this once to verify your webhook URL
 router.get('/', (req, res) => {
@@ -47,17 +48,26 @@ router.post('/', async (req, res) => {
         console.error('Failed to mark as read:', e.response?.data || e.message);
       }
 
-      const settings = store.getSettings();
-      if (settings.aiAutoReplyEnabled) {
-        const conv = store.getConversations()[from];
-        const history = conv.messages.slice(-10);
+      // 1. Check if this is a COD verification reply (CONFIRM / CANCEL)
+      const handledByVerification = await handleVerificationReply(from, text).catch((e) => {
+        console.error('Verification reply error:', e.message);
+        return false;
+      });
 
-        try {
-          const replyText = await ai.generateReply(history, from);
-          await whatsapp.sendTextMessage(from, replyText);
-          store.addMessage(from, { role: 'assistant', content: replyText, timestamp: Date.now(), ai: true });
-        } catch (e) {
-          console.error('AI reply failed:', e.response?.data || e.message);
+      // 2. If not a verification reply, check AI auto-reply
+      if (!handledByVerification) {
+        const settings = store.getSettings();
+        if (settings.aiAutoReplyEnabled) {
+          const conv = store.getConversations()[from];
+          const history = conv.messages.slice(-10);
+
+          try {
+            const replyText = await ai.generateReply(history, from);
+            await whatsapp.sendTextMessage(from, replyText);
+            store.addMessage(from, { role: 'assistant', content: replyText, timestamp: Date.now(), ai: true });
+          } catch (e) {
+            console.error('AI reply failed:', e.response?.data || e.message);
+          }
         }
       }
     }
