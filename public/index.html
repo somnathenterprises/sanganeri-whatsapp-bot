@@ -9,6 +9,44 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/icon.svg" />
   <link rel="stylesheet" href="/style.css" />
+  <style>
+    /* Orders page styles */
+    .orders-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+    .orders-toolbar select,.orders-toolbar input{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:13px;background:#fff;}
+    .order-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .2s;}
+    .order-card:hover{box-shadow:0 3px 10px rgba(0,0,0,.12);}
+    .order-card-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;}
+    .order-number{font-weight:700;font-size:16px;color:#1e2a4a;}
+    .order-badges{display:flex;gap:6px;flex-wrap:wrap;}
+    .badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+    .badge-paid{background:#e8f5e9;color:#2e7d32;}
+    .badge-pending{background:#fff3e0;color:#e65100;}
+    .badge-refunded{background:#fce4ec;color:#c62828;}
+    .badge-fulfilled{background:#e3f2fd;color:#1565c0;}
+    .badge-unfulfilled{background:#f3e5f5;color:#6a1b9a;}
+    .badge-partial{background:#fff8e1;color:#f57f17;}
+    .badge-cod{background:#ffebee;color:#b71c1c;}
+    .order-customer{margin-top:6px;font-size:13px;color:#555;}
+    .order-items{margin-top:6px;font-size:12px;color:#777;line-height:1.6;}
+    .order-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:4px;}
+    .order-total{font-weight:700;font-size:15px;color:#1e2a4a;}
+    .order-time{font-size:11px;color:#aaa;}
+    .order-phone{font-size:12px;color:#1565c0;}
+    .orders-summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+    .summary-box{flex:1;min-width:100px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+    .summary-box .num{font-size:24px;font-weight:700;color:#1e2a4a;}
+    .summary-box .lbl{font-size:11px;color:#888;margin-top:2px;}
+    .order-detail-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;}
+    .order-detail-sheet{background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:85vh;overflow-y:auto;}
+    .order-detail-sheet h3{margin:0 0 12px;font-size:18px;color:#1e2a4a;}
+    .detail-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;}
+    .detail-row:last-child{border-bottom:none;}
+    .detail-label{color:#888;font-weight:500;}
+    .detail-value{color:#1e2a4a;font-weight:600;text-align:right;max-width:60%;}
+    .live-dot{width:8px;height:8px;background:#4caf50;border-radius:50%;display:inline-block;margin-right:6px;animation:pulse 1.5s infinite;}
+    @keyframes pulse{0%{opacity:1;}50%{opacity:.3;}100%{opacity:1;}}
+    .refresh-bar{display:flex;align-items:center;font-size:12px;color:#888;margin-bottom:10px;}
+  </style>
 </head>
 <body>
 <div id="app">
@@ -58,6 +96,47 @@
         </div>
       </section>
 
+      <!-- LIVE ORDERS -->
+      <section id="view-orders" class="view">
+        <div style="padding:0 4px;">
+          <div class="refresh-bar">
+            <span class="live-dot"></span>
+            <span id="orders-last-refresh">Loading orders...</span>
+            <button class="btn ghost small" onclick="loadOrders()" style="margin-left:auto;padding:3px 10px;font-size:12px;">&#8635; Refresh</button>
+          </div>
+
+          <!-- Summary boxes -->
+          <div class="orders-summary" id="orders-summary"></div>
+
+          <!-- Filters -->
+          <div class="orders-toolbar">
+            <select id="filter-status" onchange="loadOrders()">
+              <option value="any">All Orders</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <select id="filter-financial" onchange="loadOrders()">
+              <option value="">Any Payment</option>
+              <option value="paid">Paid</option>
+              <option value="pending">Pending (COD)</option>
+              <option value="refunded">Refunded</option>
+              <option value="partially_refunded">Partial Refund</option>
+            </select>
+            <select id="filter-fulfillment" onchange="loadOrders()">
+              <option value="">Any Fulfillment</option>
+              <option value="unfulfilled">Unfulfilled</option>
+              <option value="fulfilled">Fulfilled</option>
+              <option value="partial">Partial</option>
+            </select>
+            <input type="number" id="filter-limit" value="50" min="1" max="250" style="width:70px;" onchange="loadOrders()" placeholder="Limit" />
+          </div>
+
+          <!-- Orders list -->
+          <div id="orders-list"></div>
+        </div>
+      </section>
+
       <!-- COD VERIFICATIONS -->
       <section id="view-verifications" class="view">
         <div class="card">
@@ -80,17 +159,13 @@
           <label for="tpl-recipients">Recipients (phone numbers, one per line)</label>
           <textarea id="tpl-recipients" placeholder="919812345678&#10;919898765432"></textarea>
           <p class="recipients-help">Use full numbers with country code, no + or spaces.</p>
-
           <label for="tpl-name">Template name</label>
           <input type="text" id="tpl-name" placeholder="e.g. order_shipped" />
-
           <label for="tpl-lang">Language code</label>
           <input type="text" id="tpl-lang" value="en_US" placeholder="en_US" />
-
           <label for="tpl-vars">Body variables (comma separated, optional)</label>
           <input type="text" id="tpl-vars" placeholder="Madhav, #1234" />
           <p class="recipients-help">Fill these in the same order as {{1}}, {{2}}... in your approved template.</p>
-
           <button class="btn" id="btn-send-template">Send template</button>
           <div id="template-result"></div>
         </div>
@@ -103,7 +178,7 @@
           <div class="toggle-row">
             <div>
               <strong>Auto-reply with AI</strong>
-              <p class="hint">When on, Claude answers customer questions using your live Shopify data (order status, stock).</p>
+              <p class="hint">When on, Claude answers customer questions using your live Shopify data.</p>
             </div>
             <label class="switch">
               <input type="checkbox" id="toggle-ai" />
@@ -111,45 +186,38 @@
             </label>
           </div>
         </div>
-
         <div class="card">
           <h2>&#128722; Shopify Webhook URLs</h2>
-          <p class="hint">Register these in your Shopify Admin &rarr; Settings &rarr; Notifications &rarr; Webhooks:</p>
-          <div id="webhook-urls">
-            <div style="margin-bottom:8px;">
-              <strong>Order Created (Confirmation + COD Verification):</strong><br/>
-              <code id="url-order-created" style="font-size:12px;word-break:break-all;background:#f0f0f0;padding:4px;border-radius:4px;display:block;margin-top:4px;"></code>
-            </div>
-            <div>
-              <strong>Order Fulfilled (Tracking Message):</strong><br/>
-              <code id="url-order-fulfilled" style="font-size:12px;word-break:break-all;background:#f0f0f0;padding:4px;border-radius:4px;display:block;margin-top:4px;"></code>
-            </div>
+          <p class="hint">Register these in Shopify Admin &rarr; Settings &rarr; Notifications &rarr; Webhooks:</p>
+          <div>
+            <strong>Order Confirmation + COD Verification:</strong>
+            <code id="url-order-created" style="font-size:12px;word-break:break-all;background:#f0f0f0;padding:4px;border-radius:4px;display:block;margin-top:4px;"></code>
+          </div>
+          <div style="margin-top:10px;">
+            <strong>Order Tracking (on fulfillment):</strong>
+            <code id="url-order-fulfilled" style="font-size:12px;word-break:break-all;background:#f0f0f0;padding:4px;border-radius:4px;display:block;margin-top:4px;"></code>
           </div>
         </div>
-
         <div class="card">
-          <h2>About this app</h2>
-          <p class="hint">Sanganeri Moda WhatsApp Desk - send approved templates, view live conversations, manage COD verifications, and let AI handle routine order/stock questions automatically. Built for Somnath Enterprises.</p>
+          <h2>About</h2>
+          <p class="hint">Sanganeri Moda WhatsApp Desk - live orders, COD verifications, WhatsApp templates & AI auto-reply. Built for Somnath Enterprises.</p>
         </div>
-
         <button class="btn ghost" id="btn-logout">Log out</button>
       </section>
     </main>
 
     <nav class="tabbar">
-      <button class="tab-btn active" data-tab="conversations">
-        <span class="ic">&#128172;</span> Chats
-      </button>
-      <button class="tab-btn" data-tab="verifications">
-        <span class="ic">&#128276;</span> COD
-      </button>
-      <button class="tab-btn" data-tab="template">
-        <span class="ic">&#128226;</span> Templates
-      </button>
-      <button class="tab-btn" data-tab="settings">
-        <span class="ic">&#9881;</span> Settings
-      </button>
+      <button class="tab-btn active" data-tab="conversations"><span class="ic">&#128172;</span> Chats</button>
+      <button class="tab-btn" data-tab="orders"><span class="ic">&#128722;</span> Orders</button>
+      <button class="tab-btn" data-tab="verifications"><span class="ic">&#128276;</span> COD</button>
+      <button class="tab-btn" data-tab="template"><span class="ic">&#128226;</span> Templates</button>
+      <button class="tab-btn" data-tab="settings"><span class="ic">&#9881;</span> Settings</button>
     </nav>
+  </div>
+
+  <!-- ORDER DETAIL OVERLAY -->
+  <div id="order-overlay" class="order-detail-overlay" style="display:none;" onclick="closeOrderDetail(event)">
+    <div class="order-detail-sheet" id="order-detail-content"></div>
   </div>
 
 </div>
