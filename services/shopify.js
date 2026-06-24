@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const API_VERSION = '2024-04';
+const API_VERSION = '2025-01';
 
 function client() {
   return axios.create({
