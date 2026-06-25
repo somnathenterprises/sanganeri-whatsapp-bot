@@ -120,7 +120,7 @@ router.post('/verifications/:orderId/resend', async (req, res) => {
 router.get('/orders', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 50;
-    const orders = await shopify.getOrders(limit);
+    const orders = await shopify.getOrders({ limit, status: 'any' });
     res.json(orders);
   } catch (e) {
     res.status(500).json({ error: e.message });
