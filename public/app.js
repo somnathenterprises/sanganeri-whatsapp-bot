@@ -255,7 +255,7 @@ function renderInventoryGrid(items) {
   }
   grid.innerHTML = items.map(function(item) {
     const imgHtml = item.image
-      ? '<img src="' + esc(item.image) + '" alt="' + esc(item.product_title) + '" class="inv-card-img" onerror="this.style.display='none'"/>'
+      ? '<img src="' + esc(item.image) + '" alt="' + esc(item.product_title) + '" class="inv-card-img" onerror="this.style.display=\'none\'""/>'
       : '<div class="inv-card-img-placeholder"><span style="font-size:32px;">👕</span></div>';
     const netClass = item.net_qty <= 0 ? 'inv-qty-out' : item.net_qty <= 5 ? 'inv-qty-low' : 'inv-qty-ok';
     const netLabel = item.net_qty <= 0 ? 'Out of Stock' : item.net_qty <= 5 ? 'Low Stock' : 'In Stock';
