@@ -422,8 +422,7 @@ window.sendTemplate = async function() {
   const lang = (document.getElementById('tpl-lang')||{value:'en'}).value.trim();
   const resultEl = document.getElementById('template-result');
   if (!name || !phones) { if(resultEl){resultEl.textContent='Fill template name and phone numbers';resultEl.style.color='#d82c0d';} return; }
-  const toList = phones.split(/[
-,]/).map(function(p){ return p.trim(); }).filter(Boolean);
+  const toList = phones.split(',').map(function(p){ return p.trim(); }).filter(Boolean);
   try {
     await api('/send-template', { method: 'POST', body: JSON.stringify({ to: toList, templateName: name, languageCode: lang, components: [] }) });
     if(resultEl){ resultEl.textContent='Sent to '+toList.length+' recipient(s)!'; resultEl.style.color='#2e7d32'; }
