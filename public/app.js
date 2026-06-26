@@ -70,13 +70,13 @@ let currentPage = 'orders';
 
 window.switchPage = function(page) {
   currentPage = page;
-  document.querySelectorAll('.page-section').forEach(function(s) { s.style.display = 'none'; });
+  document.querySelectorAll('.page').forEach(function(s) { s.style.display = 'none'; });
   document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
   const section = document.getElementById('page-' + page);
   if (section) section.style.display = 'block';
   const navItem = document.querySelector('.nav-item[data-page="' + page + '"]');
   if (navItem) navItem.classList.add('active');
-  const titles = { orders:'Orders', chats:'WhatsApp Chats', cod:'COD Verifications', templates:'Send Templates', settings:'Settings' };
+  const titles = { orders:'Orders', chats:'WhatsApp Chats', cod:'COD Verifications', templates:'Send Templates', inventory:'Inventory', settings:'Settings' };
   const titleEl = document.getElementById('topbar-title');
   if (titleEl) titleEl.textContent = titles[page] || page;
   if (page === 'orders') loadOrders();
