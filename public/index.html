@@ -1,6 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#1e2a4a"/>
+<title>Sanganeri Moda - Dashboard</title>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="icon" href="/icon.svg" type="image/svg+xml"/>
+<link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="view-login" class="login-wrap">
+<div class="login-box">
+<div class="logo">
+<div class="logo-icon">SM</div>
+<div>
+<div style="font-weight:700;font-size:15px;color:#1a1a1a;">Sanganeri Moda</div>
+<div style="font-size:12px;color:#6d7175;">Dashboard</div>
+</div>
+</div>
+<h2>Sign in</h2>
+<p>Enter your admin password to continue</p>
+<label for="password">Password</label>
+<input type="password" id="password" placeholder="Enter password"/>
+<button class="btn-login" id="btn-login">Sign in</button>
+<div class="login-error" id="login-error"></div>
+</div>
+</div>
+
+<!-- ===== APP SHELL ===== -->
+<div id="app-shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+<div class="sidebar-header">
+<div class="sidebar-brand">
+<div class="sidebar-brand-icon">SM</div>
+<div>
+<div class="sidebar-brand-name">Sanganeri Moda</div>
+<div class="sidebar-brand-sub">WhatsApp Desk</div>
+</div>
+</div>
+</div>
+
+<div class="sidebar-section">
+<div class="sidebar-section-label">Main</div>
+<div class="nav-item active" data-page="orders">
+<span class="nav-icon">🛒</span> Orders
+<span class="nav-badge" id="sidebar-orders-count" style="display:none;"></span>
+</div>
+<div class="nav-item" data-page="inventory">
+<span class="nav-icon">📦</span> Inventory
+</div>
+<div class="nav-item" data-page="chats">
+<span class="nav-icon">💬</span> WhatsApp Chats
+</div>
+<div class="nav-item" data-page="cod">
+<span class="nav-icon">🔔</span> COD Verifications
+<span class="nav-badge" id="sidebar-cod-count" style="display:none;"></span>
+</div>
+</div>
+
+<div class="sidebar-section">
+<div class="sidebar-section-label">Tools</div>
+<div class="nav-item" data-page="templates">
+<span class="nav-icon">📢</span> Send Templates
+</div>
+<div class="nav-item" data-page="settings">
+<span class="nav-icon">⚙️</span> Settings
+</div>
+</div>
+
+<div class="sidebar-footer">
+<div class="sidebar-user" id="btn-logout">
+<div class="sidebar-avatar">S</div>
+<div>
+<div style="font-size:13px;color:#fff;">Somnath Enterprises</div>
+<div style="font-size:11px;color:#718096;">Sign out</div>
+</div>
+</div>
+</div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+
+<!-- TOP BAR -->
+<div class="topbar">
+<div class="topbar-title" id="topbar-title">Orders</div>
+<div class="topbar-search">
+<span class="topbar-search-icon">🔍</span>
+<input type="text" id="order-search" placeholder="Search orders..." oninput="filterOrdersLocal(this.value)"/>
+</div>
+<div class="topbar-actions">
+<button class="topbar-btn" id="topbar-refresh-btn" onclick="handleTopbarRefresh()">↺ Refresh</button>
+</div>
+</div>
+
+<!-- PAGE BODY -->
+<div class="page-body" id="page-body">
+
+<!-- ORDERS PAGE -->
+<div id="page-orders" class="page active">
+
+<!-- Stats -->
+<div class="stats-row" id="orders-stats">
+<div class="stat-box"><div class="stat-label">Today Orders</div><div class="stat-value" id="stat-total">—</div></div>
+<div class="stat-box"><div class="stat-label">Revenue</div><div class="stat-value" id="stat-revenue">—</div></div>
+<div class="stat-box"><div class="stat-label">COD / Pending</div><div class="stat-value" id="stat-cod">—</div></div>
+<div class="stat-box"><div class="stat-label">Unfulfilled</div><div class="stat-value" id="stat-unshipped">—</div></div>
+<div class="stat-box"><div class="stat-label">Fulfilled</div><div class="stat-value" id="stat-fulfilled">—</div></div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+<button class="filter-tab active" onclick="setStatusFilter('any',this)">All</button>
+<button class="filter-tab" onclick="setStatusFilter('open',this)">Open</button>
+<button class="filter-tab" onclick="setStatusFilter('closed',this)">Closed</button>
+<button class="filter-tab" onclick="setStatusFilter('cancelled',this)">Cancelled</button>
+<select id="filter-financial" onchange="loadOrders()">
+<option value="">Any Payment</option>
+<option value="paid">Paid</option>
+<option value="pending">Pending (COD)</option>
+<option value="refunded">Refunded</option>
+</select>
+<select id="filter-fulfillment" onchange="loadOrders()">
+<option value="">Any Fulfillment</option>
+<option value="unfulfilled">Unfulfilled</option>
+<option value="fulfilled">Fulfilled</option>
+<option value="partial">Partial</option>
+</select>
+<select id="filter-limit" onchange="loadOrders()">
+<option value="50">50 per page</option>
+<option value="100">100 per page</option>
+<option value="250">250 per page</option>
+</select>
+<div class="refresh-info">
+<span class="live-dot"></span>
+<span id="orders-last-refresh">Loading...</span>
+</div>
+</div>
+
+<!-- Table -->
+<div class="data-table-wrap">
+<table class="data-table" id="orders-table">
+<thead>
+<tr>
+<th>Order</th>
+<th>Date</th>
+<th>Customer</th>
+<th>City</th>
+<th>Total</th>
+<th>Payment</th>
+<th>Fulfillment</th>
+<th>Items</th>
+<th>Phone</th>
+</tr>
+</thead>
+<tbody id="orders-tbody">
+<tr><td colspan="9" style="text-align:center;padding:40px;color:#8c9196;">Loading orders...</td></tr>
+</tbody>
+</table>
+<div class="pagination" id="orders-pagination"></div>
+</div>
+</div>
+
+<!-- INVENTORY PAGE -->
+<div id="page-inventory" class="page" style="display:none;">
+<div class="stats-row" id="inv-stats">
+<div class="stat-box"><div class="stat-label">Total Products</div><div class="stat-value" id="inv-stat-products">—</div></div>
+<div class="stat-box"><div class="stat-label">Total Variants</div><div class="stat-value" id="inv-stat-variants">—</div></div>
+<div class="stat-box"><div class="stat-label">Total Available</div><div class="stat-value" id="inv-stat-available">—</div></div>
+<div class="stat-box"><div class="stat-label">Total Booked</div><div class="stat-value" id="inv-stat-booked">—</div></div>
+<div class="stat-box"><div class="stat-label">Net Stock</div><div class="stat-value" id="inv-stat-net">—</div></div>
+</div>
+<div class="filter-bar">
+<input type="text" id="inv-search" placeholder="Search product or SKU..." oninput="filterInventory(this.value)" style="min-width:250px;"/>
+<button class="filter-tab active" onclick="filterInvStatus('all',this)">All</button>
+<button class="filter-tab" onclick="filterInvStatus('low',this)">⚠️ Low Stock</button>
+<button class="filter-tab" onclick="filterInvStatus('out',this)">❌ Out of Stock</button>
+<button class="filter-tab" onclick="filterInvStatus('booked',this)">📋 Has Orders</button>
+<div class="refresh-info" style="margin-left:auto;">
+<span class="live-dot"></span>
+<span id="inv-last-refresh">Loading...</span>
+</div>
+</div>
+<div class="inv-grid" id="inv-grid">
+<div style="text-align:center;padding:60px;color:#8c9196;">Loading inventory...</div>
+</div>
+</div>
+
+<!-- CHATS PAGE -->
+<div id="page-chats" class="page" style="display:none;padding:0;height:calc(100vh - 56px);overflow:hidden;">
+<div class="chat-panel">
+<div class="chat-list" id="chat-list-panel">
+<div class="chat-list-header">WhatsApp Conversations</div>
+<div id="conv-list"></div>
+</div>
+<div class="chat-messages-area" id="chat-messages-area">
+<div class="chat-empty" id="chat-empty-state">
+<div style="font-size:40px;">💬</div>
+<p>Select a conversation to view messages</p>
+</div>
+<div id="chat-active-area" style="display:none;flex-direction:column;height:100%;">
+<div class="chat-messages-header" id="chat-header-title">Chat</div>
+<div class="chat-messages-body" id="chat-messages"></div>
+<div class="chat-reply-bar">
+<textarea id="chat-reply" placeholder="Type a message..." rows="1"></textarea>
+<button class="btn" id="btn-send-reply">Send</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- COD PAGE -->
+<div id="page-cod" class="page" style="display:none;">
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+<button class="filter-tab active" onclick="loadVerifications(null,this)">All</button>
+<button class="filter-tab" onclick="loadVerifications('pending',this)">⏳ Pending</button>
+<button class="filter-tab" onclick="loadVerifications('confirmed',this)">✅ Confirmed</button>
+<button class="filter-tab" onclick="loadVerifications('cancelled',this)">❌ Cancelled</button>
+</div>
+<div id="verif-list"></div>
+</div>
+
+<!-- TEMPLATES PAGE -->
+<div id="page-templates" class="page" style="display:none;">
+<div class="g-card" style="max-width:600px;">
+<h3>Send WhatsApp Template</h3>
+<div class="form-group">
+<label>Recipients (phone numbers, one per line)</label>
+<textarea id="tpl-recipients" placeholder="919812345678&#10;919898765432"></textarea>
+<div class="form-hint">Use full numbers with country code, no + or spaces.</div>
+</div>
+<div class="form-group">
+<label>Template name</label>
+<input type="text" id="tpl-name" placeholder="e.g. order_shipped"/>
+</div>
+<div class="form-group">
+<label>Language code</label>
+<input type="text" id="tpl-lang" value="en_US"/>
+</div>
+<div class="form-group">
+<label>Body variables (comma separated)</label>
+<input type="text" id="tpl-vars" placeholder="Madhav, #1234, tracking-link"/>
+<div class="form-hint">In order of {{1}}, {{2}}, {{3}}... in your template.</div>
+</div>
+<button class="btn" id="btn-send-template">Send Template</button>
+<div id="template-result" style="margin-top:12px;"></div>
+</div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div id="page-settings" class="page" style="display:none;">
+<div style="max-width:600px;">
+<div class="settings-group">
+<div class="settings-row">
+<div class="settings-row-info">
+<strong>AI Auto-Reply</strong>
+<p>Claude answers customer questions using live Shopify data</p>
+</div>
+<label class="switch"><input type="checkbox" id="toggle-ai"/><span class="slider"></span></label>
+</div>
+</div>
+
+<div class="settings-group">
+<div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+<div class="settings-row-info">
+<strong>Shopify Webhook — Order Confirmation &amp; COD Verification</strong>
+<p>Register this URL in Shopify Admin → Settings → Notifications → Webhooks</p>
+</div>
+<code class="url-code" id="url-order-created"></code>
+</div>
+<div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+<div class="settings-row-info">
+<strong>Shopify Webhook — Order Tracking</strong>
+<p>Register this URL in Shopify Admin → Settings → Notifications → Webhooks</p>
+</div>
+<code class="url-code" id="url-order-fulfilled"></code>
+</div>
+</div>
+
+<div class="settings-group">
+<div class="settings-row">
+<div class="settings-row-info">
+<strong>App Version</strong>
+<p>Sanganeri Moda WhatsApp Desk · Somnath Enterprises</p>
+</div>
+<span style="font-size:12px;color:#6d7175;">v2.1</span>
+</div>
+</div>
+</div>
+</div>
+
+</div><!-- /page-body -->
+</div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<!-- ORDER DETAIL DRAWER -->
+<div class="drawer-overlay" id="order-drawer-overlay" onclick="closeOrderDrawer(event)">
+<div class="drawer" id="order-drawer">
+<div class="drawer-header">
+<h3 id="drawer-order-title">Order</h3>
+<button class="drawer-close" onclick="closeOrderDrawer()">✕</button>
+</div>
+<div class="drawer-body" id="drawer-body">Loading...</div>
+</div>
+</div>
+
+<!-- MOBILE TAB BAR -->
+<nav class="mobile-tabbar">
+<button data-page="orders" class="active"><span class="m-icon">🛒</span>Orders</button>
+<button data-page="inventory"><span class="m-icon">📦</span>Inventory</button>
+<button data-page="chats"><span class="m-icon">💬</span>Chats</button>
+<button data-page="cod"><span class="m-icon">🔔</span>COD</button>
+<button data-page="settings"><span class="m-icon">⚙️</span>Settings</button>
+</nav>
+
+<script src="/app.js"></script>
+</body>
+  </html><!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <meta name="theme-color" content="#1e2a4a"/>
