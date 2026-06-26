@@ -6,7 +6,7 @@ const esc = (s) => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 function getPassword() { return localStorage.getItem('wa_admin_password') || ''; }
 
 async function api(path, opts) {
-  if (!opts) opts = {};h
+  if (!opts) opts = {};
   const res = await fetch('/api' + path, {
     method: opts.method || 'GET',
     headers: Object.assign({'Content-Type':'application/json','X-Admin-Password':getPassword()}, opts.headers || {}),
