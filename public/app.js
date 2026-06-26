@@ -6,7 +6,7 @@ const esc = (s) => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 function getPassword() { return localStorage.getItem('wa_admin_password') || ''; }
 
 async function api(path, opts) {
-  if (!opts) opts = {};
+  if (!opts) opts = {};h
   const res = await fetch('/api' + path, {
     method: opts.method || 'GET',
     headers: Object.assign({'Content-Type':'application/json','X-Admin-Password':getPassword()}, opts.headers || {}),
@@ -81,6 +81,9 @@ window.switchPage = function(page) {
   if (titleEl) titleEl.textContent = titles[page] || page;
   if (page === 'orders') loadOrders();
   if (page === 'chats') loadChats();
+    if (page === 'cod') loadVerifications();
+    if (page === 'inventory') loadInventory();
+};
 // ===== ORDERS =====
 let allOrders = [];
 
@@ -198,7 +201,7 @@ window.openOrderDrawer = async function(orderId) {
       '<div class="detail-row" style="margin-top:8px;border-top:1px solid #eee;padding-top:6px;"><b>Total</b><b style="color:#1a73e8;">Rs.'+parseFloat(o.total_price).toFixed(2)+'</b></div>' +
       '</div>' +
       (tracking?'<div class="drawer-section"><b>Tracking:</b> '+esc(trackingCo)+' - '+esc(tracking)+(trackingUrl?'<br><a href="'+esc(trackingUrl)+'" target="_blank">Track Order</a>':'')+'</div>':'') +
-      (phone?'<div class="drawer-section"><button onclick="switchPage('chats')" style="width:100%;padding:10px;background:#25D366;color:#fff;border:none;border-radius:6px;cursor:pointer;">Open WhatsApp Chat</button></div>':'');
+      (phone?'<div class="drawer-section"><button onclick="switchPage("chats")" style="width:100%;padding:10px;background:#25D366;color:#fff;border:none;border-radius:6px;cursor:pointer;">Open WhatsApp Chat</button></div>':'');
   } catch(e) {
     if (body) body.innerHTML = '<div style="padding:24px;color:#d82c0d;">Failed to load order.</div>';
   }
