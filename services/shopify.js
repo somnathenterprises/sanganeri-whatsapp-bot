@@ -64,4 +64,10 @@ async function getOrderById(orderId) {
   return res.data.order || null;
 }
 
-module.exports = { getOrderByName, getOrdersByPhone, checkStock, getOrders, getOrderById };
+  // Fetch all products with variants and inventory quantity
+async function getProducts(params = {}) {
+    const res = await client().get('/products.json', { params });
+    return res.data.products || [];
+}
+
+module.exports = { getOrderByName, getOrdersByPhone, checkStock, getOrders, getOrderById, getProducts };
