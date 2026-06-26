@@ -1,4 +1,4 @@
-const express = require('express');
+// TEST REPLACEMENTconst express = require('express');
 const router = express.Router();
 const whatsapp = require('../services/whatsapp');
 const store = require('../services/store');
@@ -41,7 +41,6 @@ router.get('/health', (req, res) => {
 // CONVERSATIONS
 // ============================================================
 
-// List all conversations, most recently active first
 router.get('/conversations', (req, res) => {
   const conversations = store.getConversations();
   const list = Object.values(conversations)
@@ -55,13 +54,11 @@ router.get('/conversations', (req, res) => {
   res.json(list);
 });
 
-// Full message history for one phone number
 router.get('/conversations/:phone', (req, res) => {
   const conversations = store.getConversations();
   res.json(conversations[req.params.phone] || { phone: req.params.phone, messages: [] });
 });
 
-// Send a plain text reply manually from the dashboard
 router.post('/send-text', async (req, res) => {
   try {
     const { to, message } = req.body;
@@ -74,7 +71,6 @@ router.post('/send-text', async (req, res) => {
   }
 });
 
-// Send a pre-approved WhatsApp template to one or more recipients
 router.post('/send-template', async (req, res) => {
   try {
     const { to, templateName, languageCode, components } = req.body;
@@ -131,6 +127,70 @@ router.get('/orders/:id', async (req, res) => {
   try {
     const order = await shopify.getOrderById(req.params.id);
     res.json(order);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ============================================================
+// INVENTORY - Products with stock levels + booked quantity
+// ============================================================
+router.get('/inventory', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 250;
+
+    // Fetch products with variants (includes inventory_quantity)
+    const axios = require('axios');
+    const baseURL = `https://${process.env.SHOPIFY_STORE}/admin/api/2025-01`;
+    const headers = { 'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN };
+
+    // Get products
+    const productsRes = await axios.get(`${baseURL}/products.json`, {
+      headers,
+      params: { limit, status: 'active', fields: 'id,title,image,images,variants' }
+    });
+    const products = productsRes.data.products || [];
+
+    // Get unfulfilled orders to calculate booked qty per SKU
+    const ordersRes = await axios.get(`${baseURL}/orders.json`, {
+      headers,
+      params: { limit: 250, fulfillment_status: 'unfulfilled', status: 'open', fields: 'line_items' }
+    });
+    const openOrders = ordersRes.data.orders || [];
+
+    // Build booked map: SKU -> booked qty
+    const bookedMap = {};
+    for (const order of openOrders) {
+      for (const item of (order.line_items || [])) {
+        const sku = item.sku || item.variant_id?.toString() || item.title;
+        bookedMap[sku] = (bookedMap[sku] || 0) + item.quantity;
+      }
+    }
+
+    // Build inventory list: one entry per variant
+    const inventory = [];
+    for (const product of products) {
+      const image = (product.images && product.images[0]) ? product.images[0].src : null;
+      for (const variant of (product.variants || [])) {
+        const sku = variant.sku || `${product.id}-${variant.id}`;
+        const available = variant.inventory_quantity || 0;
+        const booked = bookedMap[sku] || bookedMap[variant.id?.toString()] || 0;
+        inventory.push({
+          product_id: product.id,
+          variant_id: variant.id,
+          product_title: product.title,
+          variant_title: variant.title,
+          sku: sku,
+          image: image,
+          available_qty: available,
+          booked_qty: booked,
+          net_qty: available - booked,
+          price: variant.price
+        });
+      }
+    }
+
+    res.json({ count: inventory.length, items: inventory });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
