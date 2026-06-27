@@ -354,11 +354,22 @@ function injectInvViewButtons() {
   if (document.querySelector('.inv-view-btn')) return;
   const fb = document.querySelector('#page-inventory .filter-bar');
   if (!fb) return;
-  const div = document.createElement('div');
-  div.style.cssText = 'display:flex;gap:4px;margin-left:8px;';
-  div.innerHTML = '<button class="filter-tab inv-view-btn active" onclick="switchInvView(\"card\",this)" style="font-size:11px;">&#9783; Cards</button>' + '<button class="filter-tab inv-view-btn" onclick="switchInvView(\"table\",this)" style="font-size:11px;">&#9783; Table</button>';
-  const refresh = fb.querySelector('.refresh-info');
-  if (refresh) { fb.insertBefore(div, refresh); } else { fb.appendChild(div); }
+    const cardsBtn = document.createElement('button');
+    cardsBtn.className = 'filter-tab inv-view-btn active';
+    cardsBtn.style.fontSize = '11px';
+    cardsBtn.textContent = '\u2637 Cards';
+    cardsBtn.addEventListener('click', function() { window.switchInvView('card', cardsBtn); });
+    const tableBtn = document.createElement('button');
+    tableBtn.className = 'filter-tab inv-view-btn';
+    tableBtn.style.fontSize = '11px';
+    tableBtn.textContent = '\u2637 Table';
+    tableBtn.addEventListener('click', function() { window.switchInvView('table', tableBtn); });
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'display:flex;gap:4px;margin-left:8px;';
+    wrapper.appendChild(cardsBtn);
+    wrapper.appendChild(tableBtn);
+    const refresh = fb.querySelector('.refresh-info');
+    if (refresh) { fb.insertBefore(wrapper, refresh); } else { fb.appendChild(wrapper); }
 }
 
 window.filterInventory = function(q) {
