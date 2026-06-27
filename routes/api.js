@@ -10,7 +10,7 @@ router.post('/login', (req, res) => {
         if (!password || password !== adminPassword) {
                   return res.status(401).json({ error: 'Unauthorized' });
         }
-        res.json({ success: true, message: 'Login successful' });h
+        res.json({ success: true, message: 'Login successful' });
 });
 
 function checkAuth(req, res, next) {
