@@ -217,6 +217,8 @@ window.closeOrderDrawer = function() {
 // ===== INVENTORY =====
 let allInventory = [];
 let invStatusFilter = 'all';
+let allTableRows = [];
+let invViewMode = 'card'; // 'card' or 'table'
 
 async function loadInventory() {
   const grid = document.getElementById('inv-grid');
@@ -224,8 +226,8 @@ async function loadInventory() {
   try {
     const data = await api('/inventory?limit=250');
     allInventory = data.items || [];
-    renderInventoryStats(allInventory);
-    renderInventoryGrid(allInventory);
+    renderInventoryStats(allInventory);injectInvViewButtons();
+        if (invViewMode === 'table') { loadTableView(); } else { renderInventoryGrid(allInventory); }
     const el = document.getElementById('inv-last-refresh');
     if (el) el.textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN');
   } catch(e) {
@@ -286,6 +288,75 @@ function renderInventoryGrid(items) {
       '<div class="inv-status-badge ' + netClass + '">' + netLabel + '</div>' +
     '</div>';
   }).join('');
+}
+
+async function loadTableView() {
+  const grid = document.getElementById('inv-grid');
+  if (grid) grid.innerHTML = '<div style="text-align:center;padding:60px;color:#8c9196;">Loading table view...</div>';
+  try {
+    const data = await api('/inventory/table?limit=250');
+    allTableRows = data.rows || [];
+    renderInventoryTable(allTableRows);
+  } catch(e) {
+    if (grid) grid.innerHTML = '<div style="text-align:center;padding:60px;color:#d82c0d;">Failed to load table: ' + esc(e.message) + '</div>';
+  }
+}
+
+window.switchInvView = function(mode, btn) {
+  invViewMode = mode;
+  document.querySelectorAll('.inv-view-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  if (mode === 'table') {
+    loadTableView();
+  } else {
+    const filtered = applyInvStatusFilter(allInventory);
+    renderInventoryGrid(filtered);
+  }
+};
+
+function renderInventoryTable(rows) {
+  const grid = document.getElementById('inv-grid');
+  if (!grid) return;
+  if (!rows || rows.length === 0) {
+    grid.innerHTML = '<div style="text-align:center;padding:60px;color:#8c9196;">No inventory items found.</div>';
+    return;
+  }
+  const sizes = ['M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
+  const cs = 'text-align:center;padding:6px 4px;font-size:12px;border:1px solid #e1e4e8;min-width:36px;';
+  const hs = 'text-align:center;padding:6px 4px;font-size:11px;font-weight:600;background:#f6f8fa;border:1px solid #e1e4e8;white-space:nowrap;';
+  const html = '<div style="overflow-x:auto;width:100%;">' +
+    '<table style="border-collapse:collapse;font-size:12px;width:100%;min-width:900px;">' +
+    '<thead><tr>' +
+    '<th rowspan="2" style="'+hs+'min-width:40px;">Sr.<br>No.</th>' +
+    '<th rowspan="2" style="'+hs+'min-width:60px;">Photo</th>' +
+    '<th rowspan="2" style="'+hs+'min-width:60px;">SKU</th>' +
+    '<th colspan="7" style="'+hs+'background:#e8f0fe;border-bottom:2px solid #1a73e8;">Full Sleeve</th>' +
+    '<th colspan="7" style="'+hs+'background:#fce8e6;border-bottom:2px solid #d93025;">Half Sleeve</th>' +
+    '<th rowspan="2" style="'+hs+'min-width:60px;">HSN</th>' +
+    '<th rowspan="2" style="'+hs+'min-width:70px;">Costing<br>Avg.</th>' +
+    '</tr><tr>' +
+    sizes.map(function(s){return '<th style="'+hs+'background:#e8f0fe;">'+s+'</th>';}).join('') +
+    sizes.map(function(s){return '<th style="'+hs+'background:#fce8e6;">'+s+'</th>';}).join('') +
+    '</tr></thead><tbody>' +
+    rows.map(function(row) {
+      const imgH = row.image ? '<img src="'+esc(row.image)+'" style="width:48px;height:48px;object-fit:cover;border-radius:4px;" onerror="this.style.display=\'none\'">' : '<div style="width:48px;height:48px;background:#f6f8fa;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;">👕</div>';
+      const fc = sizes.map(function(s){const v=row.full[s];const t=v===null?'-':v;const c=v===null?'#999':v<=0?'#d82c0d':v<=5?'#b57c00':'#2e7d32';return '<td style="'+cs+'color:'+c+';font-weight:'+(v!==null?'600':'400')+';">'+t+'</td>';}).join('');
+      const hc = sizes.map(function(s){const v=row.half[s];const t=v===null?'-':v;const c=v===null?'#999':v<=0?'#d82c0d':v<=5?'#b57c00':'#2e7d32';return '<td style="'+cs+'color:'+c+';font-weight:'+(v!==null?'600':'400')+';">'+t+'</td>';}).join('');
+      return '<tr style="border-bottom:1px solid #e1e4e8;"><td style="'+cs+'font-weight:600;">'+row.sr_no+'</td><td style="'+cs+'">'+imgH+'</td><td style="'+cs+'font-size:11px;color:#1a73e8;font-weight:600;">'+esc(row.sku)+'</td>'+fc+hc+'<td style="'+cs+'color:#666;">'+esc(String(row.hsn||'-'))+'</td><td style="'+cs+'font-weight:600;">Rs.'+parseFloat(row.costing_avg||0).toFixed(0)+'</td></tr>';
+    }).join('') +
+    '</tbody></table></div>';
+  grid.innerHTML = html;
+}
+
+function injectInvViewButtons() {
+  if (document.querySelector('.inv-view-btn')) return;
+  const fb = document.querySelector('#page-inventory .filter-bar');
+  if (!fb) return;
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:4px;margin-left:8px;';
+  div.innerHTML = '<button class="filter-tab inv-view-btn active" onclick="switchInvView(\"card\",this)" style="font-size:11px;">&#9783; Cards</button>' + '<button class="filter-tab inv-view-btn" onclick="switchInvView(\"table\",this)" style="font-size:11px;">&#9783; Table</button>';
+  const refresh = fb.querySelector('.refresh-info');
+  if (refresh) { fb.insertBefore(div, refresh); } else { fb.appendChild(div); }
 }
 
 window.filterInventory = function(q) {
