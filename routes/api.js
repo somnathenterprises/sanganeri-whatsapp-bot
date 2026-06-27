@@ -10,7 +10,7 @@ router.post('/login', (req, res) => {
         if (!password || password !== adminPassword) {
                   return res.status(401).json({ error: 'Unauthorized' });
         }
-        res.json({ success: true, message: 'Login successful' });
+        res.json({ success: true, message: 'Login successful' });h
 });
 
 function checkAuth(req, res, next) {
@@ -48,7 +48,7 @@ router.get('/orders/:id', async (req, res) => {
 router.get('/inventory', async (req, res) => {
         try {
                   const limit = parseInt(req.query.limit) || 250;
-                  const products = await shopify.getProducts(limit);
+                                  const products = await shopify.getProducts({ limit: limit });
                   const orders = await shopify.getOrders({ limit: 250, status: 'any' });
 
           // Count booked qty per variant from unfulfilled orders
@@ -94,7 +94,7 @@ router.get('/inventory', async (req, res) => {
 router.get('/inventory/table', async (req, res) => {
         try {
                   const limit = parseInt(req.query.limit) || 250;
-                  const products = await shopify.getProducts(limit);
+                                  const products = await shopify.getProducts({ limit: limit });
                   const orders = await shopify.getOrders({ limit: 250, status: 'any' });
 
           // Count booked qty per variant from unfulfilled orders
