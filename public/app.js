@@ -251,6 +251,7 @@ function renderInventoryStats(items) {
 function renderInventoryGrid(items) {
   const grid = document.getElementById('inv-grid');
   if (!grid) return;
+    grid.style.display = '';
   if (!items || items.length === 0) {
     grid.innerHTML = '<div style="text-align:center;padding:60px;color:#8c9196;">No inventory items found.</div>';
     return;
@@ -317,6 +318,7 @@ window.switchInvView = function(mode, btn) {
 function renderInventoryTable(rows) {
   const grid = document.getElementById('inv-grid');
   if (!grid) return;
+    grid.style.display = 'block';
   if (!rows || rows.length === 0) {
     grid.innerHTML = '<div style="text-align:center;padding:60px;color:#8c9196;">No inventory items found.</div>';
     return;
