@@ -28,7 +28,7 @@ router.use(checkAuth);
 router.get('/orders', async (req, res) => {
         try {
                   const limit = parseInt(req.query.limit) || 50;
-                  const orders = await shopify.getOrders(limit);
+                  const orders = await shopify.getOrders({ limit: limit, status: 'any' });
                   res.json(orders);
         } catch (e) {
                   res.status(500).json({ error: e.message });
@@ -49,7 +49,7 @@ router.get('/inventory', async (req, res) => {
         try {
                   const limit = parseInt(req.query.limit) || 250;
                   const products = await shopify.getProducts(limit);
-                  const orders = await shopify.getOrders(250);
+                  const orders = await shopify.getOrders({ limit: 250, status: 'any' });
 
           // Count booked qty per variant from unfulfilled orders
           const bookedMap = {};
@@ -95,7 +95,7 @@ router.get('/inventory/table', async (req, res) => {
         try {
                   const limit = parseInt(req.query.limit) || 250;
                   const products = await shopify.getProducts(limit);
-                  const orders = await shopify.getOrders(250);
+                  const orders = await shopify.getOrders({ limit: 250, status: 'any' });
 
           // Count booked qty per variant from unfulfilled orders
           const bookedMap = {};
@@ -199,7 +199,7 @@ router.get('/inventory/table', async (req, res) => {
 // ===== CONVERSATIONS =====
 router.get('/conversations', async (req, res) => {
         try {
-                  const convs = await store.getAllConversations();
+                  const convs = await Object.values(store.getConversations() || {});
                   res.json(convs);
         } catch (e) {
                   res.status(500).json({ error: e.message });
@@ -208,7 +208,7 @@ router.get('/conversations', async (req, res) => {
 
 router.get('/conversations/:phone', async (req, res) => {
         try {
-                  const conv = await store.getConversation(req.params.phone);
+                  const conv = await (store.getConversations() || {})[req.params.phone];
                   res.json(conv || { phone: req.params.phone, messages: [] });
         } catch (e) {
                   res.status(500).json({ error: e.message });
@@ -251,7 +251,7 @@ router.post('/send-template', async (req, res) => {
 // ===== VERIFICATIONS =====
 router.get('/verifications', async (req, res) => {
         try {
-                  const verifications = await store.getAllVerifications();
+                  const verifications = await Object.values(store.getPendingVerifications() || {});
                   res.json(verifications || []);
         } catch (e) {
                   res.status(500).json({ error: e.message });
@@ -260,7 +260,7 @@ router.get('/verifications', async (req, res) => {
 
 router.post('/verifications/:orderId/resend', async (req, res) => {
         try {
-                  const v = await store.getVerification(req.params.orderId);
+                  const v = await (store.getPendingVerifications() || {})[req.params.orderId];
                   if (!v) return res.status(404).json({ error: 'Not found' });
                   await whatsapp.sendVerification(v);
                   res.json({ success: true });
