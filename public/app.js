@@ -9,8 +9,8 @@ async function api(path, opts) {
   if (res.status === 401) { localStorage.removeItem('wa_admin_password'); showLogin('Session expired.'); throw new Error('Unauthorized'); }
   return res.json();
 }
-function showLogin(err) { const s=document.getElementById('app-shell'),l=document.getElementById('view-login'); if(s)s.style.display='none'; if(l)l.style.display='flex'; if(err){const e=document.getElementById('login-error');if(e){e.textContent=err;e.style.display='block';}} }
-function hideLogin() { const s=document.getElementById('app-shell'),l=document.getElementById('view-login'); if(l)l.style.display='none'; if(s)s.style.display='flex'; }
+function showLogin(err) { const s=document.getElementById('app-shell'),l=document.getElementById('view-login'); if(s)s.style.display=\'none\'; if(l)l.style.display='flex'; if(err){const e=document.getElementById('login-error');if(e){e.textContent=err;e.style.display='block';}} }
+function hideLogin() { const s=document.getElementById('app-shell'),l=document.getElementById('view-login'); if(l)l.style.display=\'none\'; if(s)s.style.display='flex'; }
 async function handleLogin() {
   const pwEl=document.getElementById('password'); if(!pwEl)return; const pw=pwEl.value.trim(); if(!pw)return;
   try { const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})}); const data=await res.json();
@@ -22,7 +22,7 @@ async function handleLogin() {
 let currentPage = 'orders';
 window.switchPage = function(page) {
   currentPage = page;
-  document.querySelectorAll('.page').forEach(function(s){s.style.display='none';});
+  document.querySelectorAll('.page').forEach(function(s){s.style.display=\'none\';});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
   const section=document.getElementById('page-'+page); if(section)section.style.display='block';
   const navItem=document.querySelector('.nav-item[data-page="'+page+'"]'); if(navItem)navItem.classList.add('active');
@@ -107,7 +107,7 @@ window.openOrderDrawer=async function(orderId){
       '<div class="drawer-section"><button onclick="openPackingSlip('+orderId+')" style="width:100%;padding:10px;background:#1a73e8;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Print Packing Slip</button></div>';
   }catch(e){if(body)body.innerHTML='<div style="padding:24px;color:#d82c0d;">Failed to load order.</div>';}
 };
-window.closeOrderDrawer=function(){const d=document.getElementById('order-drawer'),o=document.getElementById('order-drawer-overlay');if(d)d.style.display='none';if(o)o.style.display='none';};
+window.closeOrderDrawer=function(){const d=document.getElementById('order-drawer'),o=document.getElementById('order-drawer-overlay');if(d)d.style.display=\'none\';if(o)o.style.display=\'none\';};
 // ===== INVENTORY =====
 let allInventory=[],invStatusFilter='all',allTableRows=[],invViewMode='card';
 async function loadInventory(){
@@ -133,7 +133,7 @@ function renderInventoryGrid(items){
   const grid=document.getElementById('inv-grid'); if(!grid)return; grid.style.display='';
   if(!items||items.length===0){grid.innerHTML='<div style="text-align:center;padding:60px;color:#8c9196;">No inventory items found.</div>';return;}
   grid.innerHTML=items.map(function(item){
-    const imgHtml=item.image?'<img src="'+esc(item.image)+'" alt="'+esc(item.product_title)+'" class="inv-card-img" onerror="this.style.display='none'">':'<div class="inv-card-img-placeholder"><span style="font-size:32px;">&#x1F455;</span></div>';
+    const imgHtml=item.image?'<img src="'+esc(item.image)+'" alt="'+esc(item.product_title)+'" class="inv-card-img" onerror="this.style.display=\'none\'">':'<div class="inv-card-img-placeholder"><span style="font-size:32px;">&#x1F455;</span></div>';
     const netClass=item.net_qty<=0?'inv-qty-out':item.net_qty<=5?'inv-qty-low':'inv-qty-ok';
     const netLabel=item.net_qty<=0?'Out of Stock':item.net_qty<=5?'Low Stock':'In Stock';
     const skuHtml=item.sku?'<div class="inv-sku">SKU: '+esc(item.sku)+'</div>':'';
@@ -172,7 +172,7 @@ function renderInventoryTable(rows){
     sizes.map(function(s){return '<th style="'+hs+'background:#fce8e6;">'+s+'</th>';}).join('')+
     '</tr></thead><tbody>'+
     rows.map(function(row){
-      const imgH=row.image?'<img src="'+esc(row.image)+'" style="width:48px;height:48px;object-fit:cover;border-radius:4px;" onerror="this.style.display='none'">':'<div style="width:48px;height:48px;background:#f6f8fa;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;">&#x1F455;</div>';
+      const imgH=row.image?'<img src="'+esc(row.image)+'" style="width:48px;height:48px;object-fit:cover;border-radius:4px;" onerror="this.style.display=\'none\'">':'<div style="width:48px;height:48px;background:#f6f8fa;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;">&#x1F455;</div>';
       const fc=sizes.map(function(s){const v=row.full[s];const t=v===null?'-':v;const c=v===null?'#999':v<=0?'#d82c0d':v<=5?'#b57c00':'#2e7d32';return '<td style="'+cs+'color:'+c+';font-weight:'+(v!==null?'600':'400')+';">'+t+'</td>';}).join('');
       const hc=sizes.map(function(s){const v=row.half[s];const t=v===null?'-':v;const c=v===null?'#999':v<=0?'#d82c0d':v<=5?'#b57c00':'#2e7d32';return '<td style="'+cs+'color:'+c+';font-weight:'+(v!==null?'600':'400')+';">'+t+'</td>';}).join('');
       return '<tr style="border-bottom:1px solid #e1e4e8;"><td style="'+cs+'font-weight:600;">'+row.sr_no+'</td><td style="'+cs+'">'+imgH+'</td><td style="'+cs+'font-size:11px;color:#1a73e8;font-weight:600;">'+esc(row.sku)+'</td>'+fc+hc+'<td style="'+cs+'color:#666;">'+esc(String(row.hsn||'-'))+'</td><td style="'+cs+'font-weight:600;">Rs.'+parseFloat(row.costing_avg||0).toFixed(0)+'</td></tr>';
@@ -309,7 +309,7 @@ window.openPackingSlip=async function(orderId){
   try{const slip=await api('/packing/slip/'+orderId);renderPackingSlip(slip);}
   catch(e){content.innerHTML='<div style="padding:24px;color:#d82c0d;">Failed to load slip: '+esc(e.message)+'</div>';}
 };
-window.closeSlipModal=function(){const m=document.getElementById('slip-modal');if(m)m.style.display='none';};
+window.closeSlipModal=function(){const m=document.getElementById('slip-modal');if(m)m.style.display=\'none\';};
 window.printPackingSlip=function(){
   const content=document.getElementById('slip-content'); if(!content)return;
   const win=window.open('','_blank');
@@ -377,7 +377,7 @@ async function loadChats(){
 window.loadConversation=async function(phone){
   activePhone=phone;
   const activeArea=document.getElementById('chat-active-area'),emptyState=document.getElementById('chat-empty-state'),msgs=document.getElementById('chat-messages'),title=document.getElementById('chat-header-title');
-  if(activeArea)activeArea.style.display='flex'; if(emptyState)emptyState.style.display='none'; if(title)title.textContent='+'+phone;
+  if(activeArea)activeArea.style.display='flex'; if(emptyState)emptyState.style.display=\'none\'; if(title)title.textContent='+'+phone;
   if(!msgs)return; msgs.innerHTML='<div style="padding:16px;color:#666;">Loading messages...</div>';
   try{
     const conv=await api('/conversations/'+phone); const messages=conv.messages||[];
