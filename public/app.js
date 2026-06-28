@@ -133,7 +133,7 @@ function renderInventoryGrid(items){
   const grid=document.getElementById('inv-grid'); if(!grid)return; grid.style.display='';
   if(!items||items.length===0){grid.innerHTML='<div style="text-align:center;padding:60px;color:#8c9196;">No inventory items found.</div>';return;}
   grid.innerHTML=items.map(function(item){
-    const imgHtml=item.image?'<img src="'+esc(item.image)+'" alt="'+esc(item.product_title)+'" class="inv-card-img" onerror="this.onerror=null;this.style.display='none'">':'<div class="inv-card-img-placeholder"><span style="font-size:32px;">&#x1F455;</span></div>';
+    const imgHtml=item.image?'<img src="'+esc(item.image)+'" alt="'+esc(item.product_title)+'" class="inv-card-img" onerror="this.hidden=1">':'<div class="inv-card-img-placeholder"><span style="font-size:32px;">&#x1F455;</span></div>';
     const netClass=item.net_qty<=0?'inv-qty-out':item.net_qty<=5?'inv-qty-low':'inv-qty-ok';
     const netLabel=item.net_qty<=0?'Out of Stock':item.net_qty<=5?'Low Stock':'In Stock';
     const skuHtml=item.sku?'<div class="inv-sku">SKU: '+esc(item.sku)+'</div>':'';
@@ -172,7 +172,7 @@ function renderInventoryTable(rows){
     sizes.map(function(s){return '<th style="'+hs+'background:#fce8e6;">'+s+'</th>';}).join('')+
     '</tr></thead><tbody>'+
     rows.map(function(row){
-      const imgH=row.image?'<img src="'+esc(row.image)+'" style="width:48px;height:48px;object-fit:cover;border-radius:4px;" onerror="this.onerror=null;this.style.display='none'">':'<div style="width:48px;height:48px;background:#f6f8fa;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;">&#x1F455;</div>';
+      const imgH=row.image?'<img src="'+esc(row.image)+'" style="width:48px;height:48px;object-fit:cover;border-radius:4px;" onerror="this.hidden=1">':'<div style="width:48px;height:48px;background:#f6f8fa;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;">&#x1F455;</div>';
       const fc=sizes.map(function(s){const v=row.full[s];const t=v===null?'-':v;const c=v===null?'#999':v<=0?'#d82c0d':v<=5?'#b57c00':'#2e7d32';return '<td style="'+cs+'color:'+c+';font-weight:'+(v!==null?'600':'400')+';">'+t+'</td>';}).join('');
       const hc=sizes.map(function(s){const v=row.half[s];const t=v===null?'-':v;const c=v===null?'#999':v<=0?'#d82c0d':v<=5?'#b57c00':'#2e7d32';return '<td style="'+cs+'color:'+c+';font-weight:'+(v!==null?'600':'400')+';">'+t+'</td>';}).join('');
       return '<tr style="border-bottom:1px solid #e1e4e8;"><td style="'+cs+'font-weight:600;">'+row.sr_no+'</td><td style="'+cs+'">'+imgH+'</td><td style="'+cs+'font-size:11px;color:#1a73e8;font-weight:600;">'+esc(row.sku)+'</td>'+fc+hc+'<td style="'+cs+'color:#666;">'+esc(String(row.hsn||'-'))+'</td><td style="'+cs+'font-weight:600;">Rs.'+parseFloat(row.costing_avg||0).toFixed(0)+'</td></tr>';
