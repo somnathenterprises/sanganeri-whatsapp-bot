@@ -48,17 +48,21 @@
 <div class="sidebar-section">
 <div class="sidebar-section-label">Main</div>
 <div class="nav-item active" data-page="orders">
-<span class="nav-icon">🛒</span> Orders
+<span class="nav-icon">&#x1F6D2;</span> Orders
 <span class="nav-badge" id="sidebar-orders-count" style="display:none;"></span>
 </div>
 <div class="nav-item" data-page="inventory">
-<span class="nav-icon">📦</span> Inventory
+<span class="nav-icon">&#x1F4E6;</span> Inventory
+</div>
+<div class="nav-item" data-page="dispatch">
+<span class="nav-icon">&#x1F69A;</span> Dispatch
+<span class="nav-badge" id="sidebar-dispatch-count" style="display:none;"></span>
 </div>
 <div class="nav-item" data-page="chats">
-<span class="nav-icon">💬</span> WhatsApp Chats
+<span class="nav-icon">&#x1F4AC;</span> WhatsApp Chats
 </div>
 <div class="nav-item" data-page="cod">
-<span class="nav-icon">🔔</span> COD Verifications
+<span class="nav-icon">&#x1F514;</span> COD Verifications
 <span class="nav-badge" id="sidebar-cod-count" style="display:none;"></span>
 </div>
 </div>
@@ -66,10 +70,10 @@
 <div class="sidebar-section">
 <div class="sidebar-section-label">Tools</div>
 <div class="nav-item" data-page="templates">
-<span class="nav-icon">📢</span> Send Templates
+<span class="nav-icon">&#x1F4E2;</span> Send Templates
 </div>
 <div class="nav-item" data-page="settings">
-<span class="nav-icon">⚙️</span> Settings
+<span class="nav-icon">&#x2699;&#xFE0F;</span> Settings
 </div>
 </div>
 
@@ -91,11 +95,11 @@
 <div class="topbar">
 <div class="topbar-title" id="topbar-title">Orders</div>
 <div class="topbar-search">
-<span class="topbar-search-icon">🔍</span>
+<span class="topbar-search-icon">&#x1F50D;</span>
 <input type="text" id="order-search" placeholder="Search orders..." oninput="filterOrdersLocal(this.value)"/>
 </div>
 <div class="topbar-actions">
-<button class="topbar-btn" id="topbar-refresh-btn" onclick="handleTopbarRefresh()">↺ Refresh</button>
+<button class="topbar-btn" id="topbar-refresh-btn" onclick="handleTopbarRefresh()">&#x21BA; Refresh</button>
 </div>
 </div>
 
@@ -104,222 +108,190 @@
 
 <!-- ORDERS PAGE -->
 <div id="page-orders" class="page active">
-
-<!-- Stats -->
 <div class="stats-row" id="orders-stats">
-<div class="stat-box"><div class="stat-label">Today Orders</div><div class="stat-value" id="stat-total">—</div></div>
-<div class="stat-box"><div class="stat-label">Revenue</div><div class="stat-value" id="stat-revenue">—</div></div>
-<div class="stat-box"><div class="stat-label">COD / Pending</div><div class="stat-value" id="stat-cod">—</div></div>
-<div class="stat-box"><div class="stat-label">Unfulfilled</div><div class="stat-value" id="stat-unshipped">—</div></div>
-<div class="stat-box"><div class="stat-label">Fulfilled</div><div class="stat-value" id="stat-fulfilled">—</div></div>
+<div class="stat-box"><div class="stat-label">Today Orders</div><div class="stat-value" id="stat-total">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">Revenue</div><div class="stat-value" id="stat-revenue">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">COD / Pending</div><div class="stat-value" id="stat-cod">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">Unfulfilled</div><div class="stat-value" id="stat-unshipped">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">Fulfilled</div><div class="stat-value" id="stat-fulfilled">&#x2014;</div></div>
 </div>
-
-<!-- Filter Bar -->
 <div class="filter-bar">
 <button class="filter-tab active" onclick="setStatusFilter('any',this)">All</button>
 <button class="filter-tab" onclick="setStatusFilter('open',this)">Open</button>
 <button class="filter-tab" onclick="setStatusFilter('closed',this)">Closed</button>
-<button class="filter-tab" onclick="setStatusFilter('cancelled',this)">Cancelled</button>
-<select id="filter-financial" onchange="loadOrders()">
-<option value="">Any Payment</option>
-<option value="paid">Paid</option>
-<option value="pending">Pending (COD)</option>
-<option value="refunded">Refunded</option>
+<select id="filter-limit" onchange="loadOrders()" class="filter-select">
+<option value="50">50 orders</option>
+<option value="100">100 orders</option>
+<option value="250">250 orders</option>
 </select>
-<select id="filter-fulfillment" onchange="loadOrders()">
-<option value="">Any Fulfillment</option>
-<option value="unfulfilled">Unfulfilled</option>
-<option value="fulfilled">Fulfilled</option>
-<option value="partial">Partial</option>
-</select>
-<select id="filter-limit" onchange="loadOrders()">
-<option value="50">50 per page</option>
-<option value="100">100 per page</option>
-<option value="250">250 per page</option>
-</select>
-<div class="refresh-info">
-<span class="live-dot"></span>
-<span id="orders-last-refresh">Loading...</span>
+<span class="refresh-info" id="orders-last-refresh" style="margin-left:auto;font-size:11px;color:#8c9196;"></span>
 </div>
-</div>
-
-<!-- Table -->
-<div class="data-table-wrap">
+<div class="g-card" style="padding:0;overflow:hidden;">
 <table class="data-table" id="orders-table">
-<thead>
-<tr>
-<th>Order</th>
-<th>Date</th>
-<th>Customer</th>
-<th>City</th>
-<th>Total</th>
-<th>Payment</th>
-<th>Fulfillment</th>
-<th>Items</th>
-<th>Phone</th>
-</tr>
-</thead>
+<thead><tr>
+<th>Order</th><th>Date</th><th>Customer</th><th>City</th>
+<th>Amount</th><th>Payment</th><th>Status</th><th>Items</th><th>Phone</th>
+</tr></thead>
 <tbody id="orders-tbody">
-<tr><td colspan="9" style="text-align:center;padding:40px;color:#8c9196;">Loading orders...</td></tr>
+<tr><td colspan="9" style="text-align:center;padding:24px;color:#666;">Loading orders...</td></tr>
 </tbody>
 </table>
-<div class="pagination" id="orders-pagination"></div>
 </div>
 </div>
 
 <!-- INVENTORY PAGE -->
 <div id="page-inventory" class="page" style="display:none;">
-<div class="stats-row" id="inv-stats">
-<div class="stat-box"><div class="stat-label">Total Products</div><div class="stat-value" id="inv-stat-products">—</div></div>
-<div class="stat-box"><div class="stat-label">Total Variants</div><div class="stat-value" id="inv-stat-variants">—</div></div>
-<div class="stat-box"><div class="stat-label">Total Available</div><div class="stat-value" id="inv-stat-available">—</div></div>
-<div class="stat-box"><div class="stat-label">Total Booked</div><div class="stat-value" id="inv-stat-booked">—</div></div>
-<div class="stat-box"><div class="stat-label">Net Stock</div><div class="stat-value" id="inv-stat-net">—</div></div>
+<div class="stats-row">
+<div class="stat-box"><div class="stat-label">Products</div><div class="stat-value" id="inv-stat-products">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">Variants</div><div class="stat-value" id="inv-stat-variants">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">Total Stock</div><div class="stat-value" id="inv-stat-available">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">Booked</div><div class="stat-value" id="inv-stat-booked">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">Net Available</div><div class="stat-value" id="inv-stat-net">&#x2014;</div></div>
 </div>
 <div class="filter-bar">
-<input type="text" id="inv-search" placeholder="Search product or SKU..." oninput="filterInventory(this.value)" style="min-width:250px;"/>
 <button class="filter-tab active" onclick="filterInvStatus('all',this)">All</button>
-<button class="filter-tab" onclick="filterInvStatus('low',this)">⚠️ Low Stock</button>
-<button class="filter-tab" onclick="filterInvStatus('out',this)">❌ Out of Stock</button>
-<button class="filter-tab" onclick="filterInvStatus('booked',this)">📋 Has Orders</button>
-<div class="refresh-info" style="margin-left:auto;">
-<span class="live-dot"></span>
-<span id="inv-last-refresh">Loading...</span>
+<button class="filter-tab" onclick="filterInvStatus('low',this)">Low Stock</button>
+<button class="filter-tab" onclick="filterInvStatus('out',this)">Out of Stock</button>
+<button class="filter-tab" onclick="filterInvStatus('booked',this)">Has Bookings</button>
+<input type="text" id="inv-search" placeholder="Search SKU or product..." class="filter-input" oninput="filterInventory(this.value)" style="margin-left:8px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;"/>
+<span class="refresh-info" id="inv-last-refresh" style="margin-left:auto;font-size:11px;color:#8c9196;"></span>
+</div>
+<div id="inv-grid" class="inv-grid"></div>
+</div>
+
+<!-- DISPATCH PAGE -->
+<div id="page-dispatch" class="page" style="display:none;">
+<div class="stats-row">
+<div class="stat-box"><div class="stat-label">Pending Pack</div><div class="stat-value" id="disp-stat-pending">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">With Alteration</div><div class="stat-value" id="disp-stat-alteration">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">COD Orders</div><div class="stat-value" id="disp-stat-cod">&#x2014;</div></div>
+<div class="stat-box"><div class="stat-label">Prepaid Orders</div><div class="stat-value" id="disp-stat-prepaid">&#x2014;</div></div>
+</div>
+
+<!-- AWB Scanner -->
+<div class="g-card" style="margin-bottom:12px;background:#f0f7ff;border:1px solid #1a73e8;">
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+<span style="font-size:20px;">&#x1F4F7;</span>
+<div style="flex:1;min-width:200px;">
+<div style="font-weight:700;font-size:13px;color:#1a73e8;margin-bottom:4px;">Barcode Dispatch Scanner</div>
+<div style="font-size:11px;color:#666;">Scan or type AWB number to find order, deduct inventory &amp; mark as Packed</div>
+</div>
+<input type="text" id="awb-scanner-input" placeholder="Scan or type AWB / Order#..." style="padding:8px 12px;border:2px solid #1a73e8;border-radius:6px;font-size:13px;width:240px;outline:none;" oninput="handleAwbScan(this.value)" onkeypress="if(event.key==='Enter')confirmAwbPack()"/>
+<button onclick="confirmAwbPack()" style="padding:8px 16px;background:#1a73e8;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;">&#x2713; Pack It</button>
+<div id="awb-scan-result" style="font-size:12px;color:#666;min-width:120px;"></div>
 </div>
 </div>
-<div class="inv-grid" id="inv-grid">
-<div style="text-align:center;padding:60px;color:#8c9196;">Loading inventory...</div>
+
+<div class="filter-bar">
+<button class="filter-tab active" onclick="filterDispatchView('all',this)">All Couriers</button>
+<button class="filter-tab" onclick="filterDispatchView('bluedart',this)">Bluedart</button>
+<button class="filter-tab" onclick="filterDispatchView('delhivery',this)">Delhivery</button>
+<button class="filter-tab" onclick="filterDispatchView('alteration',this)">&#x2702; Alteration Only</button>
+<span class="refresh-info" id="disp-last-refresh" style="margin-left:auto;font-size:11px;color:#8c9196;"></span>
+</div>
+
+<div id="dispatch-queue" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+<!-- Packing Slip Modal -->
+<div id="slip-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;overflow-y:auto;">
+<div style="max-width:680px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;">
+<div style="background:#1e2a4a;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;">
+<b style="font-size:15px;">&#x1F4C4; 3-in-1 Packing Slip</b>
+<div style="display:flex;gap:8px;">
+<button onclick="printPackingSlip()" style="padding:6px 14px;background:#25D366;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">&#x1F5A8; Print</button>
+<button onclick="closeSlipModal()" style="padding:6px 14px;background:#d82c0d;color:#fff;border:none;border-radius:6px;cursor:pointer;">&#x2715; Close</button>
+</div>
+</div>
+<div id="slip-content" style="padding:0;"></div>
+</div>
 </div>
 </div>
 
 <!-- CHATS PAGE -->
-<div id="page-chats" class="page" style="display:none;padding:0;height:calc(100vh - 56px);overflow:hidden;">
-<div class="chat-panel">
-<div class="chat-list" id="chat-list-panel">
-<div class="chat-list-header">WhatsApp Conversations</div>
+<div id="page-chats" class="page" style="display:none;">
+<div class="chat-layout">
+<div class="chat-list-panel">
+<div class="chat-search"><input type="text" placeholder="Search chats..."/></div>
 <div id="conv-list"></div>
 </div>
-<div class="chat-messages-area" id="chat-messages-area">
-<div class="chat-empty" id="chat-empty-state">
-<div style="font-size:40px;">💬</div>
-<p>Select a conversation to view messages</p>
+<div class="chat-main-panel">
+<div id="chat-empty-state" style="display:flex;align-items:center;justify-content:center;height:100%;color:#8c9196;flex-direction:column;gap:8px;">
+<span style="font-size:48px;">&#x1F4AC;</span>
+<div>Select a conversation to start</div>
 </div>
 <div id="chat-active-area" style="display:none;flex-direction:column;height:100%;">
-<div class="chat-messages-header" id="chat-header-title">Chat</div>
-<div class="chat-messages-body" id="chat-messages"></div>
+<div class="chat-header"><div id="chat-header-title" style="font-weight:600;">Chat</div></div>
+<div id="chat-messages" class="chat-messages"></div>
 <div class="chat-reply-bar">
-<textarea id="chat-reply" placeholder="Type a message..." rows="1"></textarea>
-<button class="btn" id="btn-send-reply">Send</button>
+<textarea id="chat-reply" rows="2" placeholder="Type a message..."></textarea>
+<button id="btn-send-reply" class="btn">Send</button>
 </div>
 </div>
 </div>
 </div>
 </div>
 
-<!-- COD PAGE -->
+<!-- COD VERIFICATIONS PAGE -->
 <div id="page-cod" class="page" style="display:none;">
-<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-<button class="filter-tab active" onclick="loadVerifications(null,this)">All</button>
-<button class="filter-tab" onclick="loadVerifications('pending',this)">⏳ Pending</button>
-<button class="filter-tab" onclick="loadVerifications('confirmed',this)">✅ Confirmed</button>
-<button class="filter-tab" onclick="loadVerifications('cancelled',this)">❌ Cancelled</button>
+<div class="filter-bar">
+<span style="font-size:13px;font-weight:600;">Pending COD Verifications</span>
 </div>
 <div id="verif-list"></div>
 </div>
 
-<!-- TEMPLATES PAGE -->
+<!-- SEND TEMPLATES PAGE -->
 <div id="page-templates" class="page" style="display:none;">
-<div class="g-card" style="max-width:600px;">
-<h3>Send WhatsApp Template</h3>
+<div class="g-card">
+<h3 style="margin:0 0 16px;">Send WhatsApp Template</h3>
 <div class="form-group">
-<label>Recipients (phone numbers, one per line)</label>
-<textarea id="tpl-recipients" placeholder="919812345678&#10;919898765432"></textarea>
-<div class="form-hint">Use full numbers with country code, no + or spaces.</div>
+<label>Template Name</label>
+<input type="text" id="tpl-name" class="form-input" placeholder="e.g. order_confirmed"/>
 </div>
 <div class="form-group">
-<label>Template name</label>
-<input type="text" id="tpl-name" placeholder="e.g. order_shipped"/>
+<label>Recipients (comma-separated phone numbers with country code)</label>
+<textarea id="tpl-recipients" class="form-input" rows="3" placeholder="919876543210, 918765432109"></textarea>
 </div>
 <div class="form-group">
-<label>Language code</label>
-<input type="text" id="tpl-lang" value="en_US"/>
-</div>
-<div class="form-group">
-<label>Body variables (comma separated)</label>
-<input type="text" id="tpl-vars" placeholder="Madhav, #1234, tracking-link"/>
-<div class="form-hint">In order of {{1}}, {{2}}, {{3}}... in your template.</div>
+<label>Language Code</label>
+<input type="text" id="tpl-lang" class="form-input" value="en" placeholder="en"/>
 </div>
 <button class="btn" id="btn-send-template">Send Template</button>
-<div id="template-result" style="margin-top:12px;"></div>
+<div id="template-result" style="margin-top:12px;font-size:13px;"></div>
 </div>
 </div>
 
 <!-- SETTINGS PAGE -->
 <div id="page-settings" class="page" style="display:none;">
-<div style="max-width:600px;">
-<div class="settings-group">
-<div class="settings-row">
-<div class="settings-row-info">
-<strong>AI Auto-Reply</strong>
-<p>Claude answers customer questions using live Shopify data</p>
+<div class="g-card">
+<h3 style="margin:0 0 16px;">Webhook URLs</h3>
+<div class="form-group">
+<label>Order Created Webhook (Shopify &#x2192; App)</label>
+<div id="url-order-created" class="form-input" style="background:#f6f8fa;cursor:text;word-break:break-all;"></div>
 </div>
-<label class="switch"><input type="checkbox" id="toggle-ai"/><span class="slider"></span></label>
+<div class="form-group">
+<label>Order Fulfilled Webhook</label>
+<div id="url-order-fulfilled" class="form-input" style="background:#f6f8fa;cursor:text;word-break:break-all;"></div>
 </div>
-</div>
-
-<div class="settings-group">
-<div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
-<div class="settings-row-info">
-<strong>Shopify Webhook — Order Confirmation &amp; COD Verification</strong>
-<p>Register this URL in Shopify Admin → Settings → Notifications → Webhooks</p>
-</div>
-<code class="url-code" id="url-order-created"></code>
-</div>
-<div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
-<div class="settings-row-info">
-<strong>Shopify Webhook — Order Tracking</strong>
-<p>Register this URL in Shopify Admin → Settings → Notifications → Webhooks</p>
-</div>
-<code class="url-code" id="url-order-fulfilled"></code>
-</div>
-</div>
-
-<div class="settings-group">
-<div class="settings-row">
-<div class="settings-row-info">
-<strong>App Version</strong>
-<p>Sanganeri Moda WhatsApp Desk · Somnath Enterprises</p>
-</div>
-<span style="font-size:12px;color:#6d7175;">v2.1</span>
-</div>
+<div style="margin-top:16px;padding:12px;background:#fff8e1;border-radius:8px;font-size:13px;color:#856404;">
+<b>Admin Password:</b> Set via ADMIN_PASSWORD environment variable on Render.
 </div>
 </div>
 </div>
 
-</div><!-- /page-body -->
-</div><!-- /main-content -->
-</div><!-- /app-shell -->
+</div><!-- end page-body -->
+</div><!-- end main-content -->
+</div><!-- end app-shell -->
 
-<!-- ORDER DETAIL DRAWER -->
-<div class="drawer-overlay" id="order-drawer-overlay" onclick="closeOrderDrawer(event)">
-<div class="drawer" id="order-drawer">
-<div class="drawer-header">
-<h3 id="drawer-order-title">Order</h3>
-<button class="drawer-close" onclick="closeOrderDrawer()">✕</button>
+<!-- ORDER DRAWER -->
+<div id="order-drawer-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:200;" onclick="closeOrderDrawer()"></div>
+<div id="order-drawer" style="display:none;position:fixed;top:0;right:0;width:420px;max-width:100vw;height:100vh;background:#fff;z-index:201;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,0.15);">
+<div style="padding:16px 20px;border-bottom:1px solid #e1e4e8;display:flex;justify-content:space-between;align-items:center;background:#1e2a4a;color:#fff;">
+<b id="drawer-order-title">Order Details</b>
+<button onclick="closeOrderDrawer()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">&#x2715;</button>
 </div>
-<div class="drawer-body" id="drawer-body">Loading...</div>
+<div id="drawer-body" style="flex:1;overflow-y:auto;padding:16px;"></div>
 </div>
-</div>
-
-<!-- MOBILE TAB BAR -->
-<nav class="mobile-tabbar">
-<button data-page="orders" class="active"><span class="m-icon">🛒</span>Orders</button>
-<button data-page="inventory"><span class="m-icon">📦</span>Inventory</button>
-<button data-page="chats"><span class="m-icon">💬</span>Chats</button>
-<button data-page="cod"><span class="m-icon">🔔</span>COD</button>
-<button data-page="settings"><span class="m-icon">⚙️</span>Settings</button>
-</nav>
 
 <script src="/app.js"></script>
 </body>
-  </html>
+</html>
