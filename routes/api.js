@@ -37,7 +37,7 @@ router.get('/orders', async (req, res) => {
 
 router.get('/orders/:id', async (req, res) => {
         try {
-                const order = await shopify.getOrder(req.params.id);
+                const order = await shopify.getOrderById(req.params.id);
                 res.json(order);
         } catch (e) {
                 res.status(500).json({ error: e.message });
@@ -303,7 +303,7 @@ router.get('/packing/queue', async (req, res) => {
 // ===== PACKING SLIP (3-in-1 PDF data) =====
 router.get('/packing/slip/:orderId', async (req, res) => {
         try {
-                const order = await shopify.getOrder(req.params.orderId);
+                const order = await shopify.getOrderById(req.params.orderId);
                 if (!order) return res.status(404).json({ error: 'Order not found' });
 
                 const customerName = order.customer ? ((order.customer.first_name || '') + ' ' + (order.customer.last_name || '')).trim() : 'Guest';
