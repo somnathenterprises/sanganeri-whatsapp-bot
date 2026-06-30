@@ -28,7 +28,10 @@ router.use(checkAuth);
 router.get('/orders', async (req, res) => {
         try {
                 const limit = parseInt(req.query.limit) || 50;
-                const orders = await shopify.getOrders({ limit: limit, status: 'any' });
+                const params = { limit: limit, status: 'any' };
+                                if (req.query.created_at_min) params.created_at_min = req.query.created_at_min;
+                                if (req.query.created_at_max) params.created_at_max = req.query.created_at_max;
+                                const orders = await shopify.getOrders(params);
                 res.json(orders);
         } catch (e) {
                 res.status(500).json({ error: e.message });
