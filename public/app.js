@@ -40,7 +40,12 @@ async function loadOrders(){
   if(tbody)tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:#666;">Loading orders...</td></tr>';
   try{
     const limit=(document.getElementById('filter-limit')||{value:'50'}).value||50;
-    const orders=await api('/orders?limit='+limit);
+    const fromDate=document.getElementById('filter-date-from')?document.getElementById('filter-date-from').value:'';
+          const toDate=document.getElementById('filter-date-to')?document.getElementById('filter-date-to').value:'';
+          let ordersUrl='/orders?limit='+limit;
+          if(fromDate)ordersUrl+='&created_at_min='+fromDate+'T00:00:00';
+          if(toDate)ordersUrl+='&created_at_max='+toDate+'T23:59:59';
+          const orders=await api(ordersUrl);
     allOrders=orders; renderOrdersTable(orders); renderStats(orders);
     const lr=document.getElementById('orders-last-refresh'); if(lr)lr.textContent='Updated: '+new Date().toLocaleTimeString('en-IN');
   }catch(e){if(tbody)tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:#d82c0d;">Failed to load orders.</td></tr>';}
@@ -76,6 +81,8 @@ function renderOrdersTable(orders){
 }
 window.setStatusFilter=function(status,btn){document.querySelectorAll('.filter-tab').forEach(function(t){if(t.closest('#page-orders'))t.classList.remove('active');});if(btn)btn.classList.add('active');loadOrders();};
 window.filterOrdersLocal=function(q){if(!q){renderOrdersTable(allOrders);return;}const filtered=allOrders.filter(function(o){const n=o.customer?((o.customer.first_name||'')+(o.customer.last_name||'')).toLowerCase():'';return n.includes(q.toLowerCase())||(o.name||'').toLowerCase().includes(q.toLowerCase());});renderOrdersTable(filtered);};
+window.applyDateFilter=function(){const fromEl=document.getElementById('filter-date-from');const toEl=document.getElementById('filter-date-to');const clearBtn=document.getElementById('btn-clear-date');const hasFilter=(fromEl&&fromEl.value)||(toEl&&toEl.value);if(clearBtn)clearBtn.style.display=hasFilter?'inline-flex':'none';loadOrders();};
+window.clearDateFilter=function(){const fromEl=document.getElementById('filter-date-from');const toEl=document.getElementById('filter-date-to');const clearBtn=document.getElementById('btn-clear-date');if(fromEl)fromEl.value='';if(toEl)toEl.value='';if(clearBtn)clearBtn.style.display='none';loadOrders();};
 window.openOrderDrawer=async function(orderId){
   const drawer=document.getElementById('order-drawer'),overlay=document.getElementById('order-drawer-overlay'),body=document.getElementById('drawer-body');
   if(!drawer)return; if(overlay)overlay.style.display='block'; drawer.style.display='flex';
